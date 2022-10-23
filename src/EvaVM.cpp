@@ -1,8 +1,6 @@
 #include "EvaVM.hpp"
 #include "OpCode.hpp"
-
-#include <iostream>
-#include <cstdlib>
+#include "Logger.hpp"
 
 void EvaVM::exec(const std::string& program) {
     // 1. Parse AST
@@ -10,7 +8,7 @@ void EvaVM::exec(const std::string& program) {
 
     // 2. Compile AST to bytecode.
     // compiler->compile(ast);
-    code = {OP_HALT};
+    code = {0x1, OP_HALT};
 
     ip = &code[0];
 
@@ -24,8 +22,7 @@ void EvaVM::eval() {
         case OP_HALT:
             return;   
         default:
-            std::cout << "Illegal bytecode: " << std::hex << bytecode << '\n';
-            exit(-1);
+            DIE << "Illegal bytecode: " << HEX(bytecode) << '\n';
             break;
         }
     }
