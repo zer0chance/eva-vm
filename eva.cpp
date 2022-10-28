@@ -8,8 +8,8 @@
 int main(int argc, char** argv) {
     EvaVM evm;
 
-    evm.exec("Dummy");
+    auto result = evm.exec("Dummy");
 
-    std::cout << "\nVM exited gracefully.";
+    std::cout << "\nVM exited gracefully with value: " << AS_NUMBER(result);
     return 0;
 }
