@@ -13,11 +13,10 @@ EvaValue EvaVM::exec(const std::string& program) {
 
     // 2. Compile AST to bytecode.
     // compiler->compile(ast);
-    constants.push_back(NUMBER(1));
-    constants.push_back(NUMBER(12));
     constants.push_back(NUMBER(3));
+    constants.push_back(NUMBER(1));
 
-    code = { OP_CONST, 0, OP_CONST, 1, OP_CONST, 2, OP_DIV, OP_ADD, OP_HALT };
+    code = { OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT };
 
     ip = &code[0];
     sp = &stack[0];
@@ -36,9 +35,24 @@ EvaValue EvaVM::eval() {
             push(constants[next_opcode()]);
             break;
         
-        case OP_ADD:
-            BINARY_OP(+);
+        case OP_ADD:{
+            auto op2 = pop();
+            auto op1 = pop();
+
+            if (IS_NUMBER(op1) && IS_NUMBER(op2)) {
+                auto n1 = AS_NUMBER(op1);
+                auto n2 = AS_NUMBER(op2);
+                push(NUMBER(n1 + n2));
+            } else if (IS_STRING(op1) && IS_STRING(op2)) {
+                auto s1 = AS_CPPSTRING(op1);
+                auto s2 = AS_CPPSTRING(op2);
+                push(ALLOC_STRING(s1 + s2));
+            } else {
+                DIE << "Incompatible types in addition \n";
+            }
+
             break;
+        }
         
         case OP_SUB:
             BINARY_OP(-);
