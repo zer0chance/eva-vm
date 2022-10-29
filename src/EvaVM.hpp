@@ -39,10 +39,7 @@ class EvaVM final {
     EvaValue stack[STACK_LIMIT];
 
   public:
-    EvaVM() {
-        ip = &code[0];
-        sp = stack;
-    }
+    EvaVM() = default;
     /**
      * Executes passed program.
     */
