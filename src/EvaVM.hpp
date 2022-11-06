@@ -5,10 +5,9 @@
 #include "EvaValueType.hpp"
 #include "Logger.hpp"
 #include "parser/EvaParser.hpp"
+#include "compiler/EvaCompiler.hpp"
 
 #include <string>
-#include <vector>
-#include <array>
 
 using syntax::EvaParser;
 
@@ -24,16 +23,6 @@ class EvaVM final {
     EvaValue* sp;
 
     /**
-     * Bytecode instructions.
-    */
-    std::vector<uint8_t> code;
-
-    /**
-     * Constant pool.
-    */
-    std::vector<EvaValue> constants;
-
-    /**
      * Stack.
     */
     static constexpr size_t STACK_LIMIT = 1024;
@@ -45,8 +34,20 @@ class EvaVM final {
     */
     std::unique_ptr<EvaParser> parser;
 
+    /**
+     * Compiler.
+    */
+    std::unique_ptr<EvaCompiler> compiler;
+
+    /**
+     * Code object.
+    */
+    CodeObject* codeObj;
+
   public:
-    EvaVM() : parser(std::make_unique<EvaParser>()) {};
+    EvaVM() : parser(std::make_unique<EvaParser>()),
+              compiler(std::make_unique<EvaCompiler>()) {};
+
     /**
      * Executes passed program.
     */
@@ -58,7 +59,7 @@ class EvaVM final {
     EvaValue eval();
 
     const uint8_t next_opcode() {
-        // Return current opcode and increment SP
+        // Return current opcode and increment IP
         return *ip++;
     }
 
@@ -74,7 +75,7 @@ class EvaVM final {
 
     EvaValue pop() {
         // Return value on TOS and decrement SP
-        if (sp == stack) {
+        if (sp == &stack[0]) {
             DIE << "pop(): empty stack";
         }
 

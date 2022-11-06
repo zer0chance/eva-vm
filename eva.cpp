@@ -9,9 +9,9 @@ int main(int argc, char** argv) {
     EvaVM evm;
 
     auto result = evm.exec(R"(
-        ( + "Hello, "  "world!" )
+        "Hello"
     )");
 
-    std::cout << "\nVM exited gracefully with value: " << AS_NUMBER(result);
+    std::cout << "\nVM exited gracefully with value: " << AS_CPPSTRING(result);
     return 0;
 }

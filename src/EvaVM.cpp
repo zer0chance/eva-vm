@@ -12,13 +12,14 @@ EvaValue EvaVM::exec(const std::string& program) {
     auto ast = parser->parse(program);
 
     // 2. Compile AST to bytecode.
-    // compiler->compile(ast);
-    constants.push_back(NUMBER(3));
-    constants.push_back(NUMBER(1));
+    codeObj = compiler->compile(ast);
 
-    code = { OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT };
+    // constants.push_back(NUMBER(3));
+    // constants.push_back(NUMBER(1));
 
-    ip = &code[0];
+    // code = { OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT };
+
+    ip = &codeObj->code[0];
     sp = &stack[0];
 
     return eval();
@@ -32,7 +33,7 @@ EvaValue EvaVM::eval() {
             return pop();
 
         case OP_CONST:
-            push(constants[next_opcode()]);
+            push(codeObj->constants[next_opcode()]);
             break;
         
         case OP_ADD:{

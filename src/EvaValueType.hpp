@@ -3,6 +3,7 @@
 #define SRC_EVAVALUETYPE_HPP
 
 #include <string>
+#include <vector>
 
 /**
  * Types of values
@@ -13,18 +14,13 @@ enum class EvaValueType {
 };
 
 enum class ObjectType {
-    STRING
+    STRING,
+    CODE
 };
 
 struct Object {
     Object (ObjectType type) : type(type) {}
     ObjectType type;
-};
-
-struct StringObject : public Object {
-    StringObject(const std::string &string) 
-        : Object(ObjectType::STRING), string(string) {}
-    std::string string;
 };
 
 /*
@@ -44,17 +40,54 @@ struct EvaValue {
     } value;
 };
 
+struct StringObject : public Object {
+    StringObject(const std::string &string) 
+        : Object(ObjectType::STRING), string(string) {}
+    
+    /**
+     * String value.
+    */
+    std::string string;
+};
+
+/**
+ * CodeObject contains compiled bytecode, locals and
+ * other state needed to function execution.
+*/
+struct CodeObject : public Object {
+    CodeObject(const std::string &name) 
+        : Object(ObjectType::CODE), name(name) {}
+
+    /**
+     * Unit name (function name in most cases).
+    */
+    std::string name;
+
+    /**
+     * Bytecode instructions.
+    */
+    std::vector<uint8_t> code;
+
+    /**
+     * Constant pool.
+    */
+    std::vector<EvaValue> constants;
+};
+
 // Type constructors:
 #define NUMBER(value) EvaValue(EvaValueType::NUMBER, static_cast<double>(value))
 
 #define ALLOC_STRING(value) \
     EvaValue(EvaValueType::OBJECT, (Object*) new StringObject(value))
+#define ALLOC_CODE(name) \
+    EvaValue(EvaValueType::OBJECT, (Object*) new CodeObject(name))
 
 // Accessors:
-#define AS_NUMBER(evaValue) ((double)((evaValue).value.number))
-#define AS_OBJECT(evaValue) ((Object*)((evaValue).value.object))
-#define AS_STRING(evaValue) ((StringObject*)((evaValue).value.object))
+#define AS_NUMBER(evaValue)    ((double)((evaValue).value.number))
+#define AS_OBJECT(evaValue)    ((Object*)((evaValue).value.object))
+#define AS_STRING(evaValue)    ((StringObject*)((evaValue).value.object))
 #define AS_CPPSTRING(evaValue) (AS_STRING(evaValue)->string)
+#define AS_CODE(evaValue)      ((CodeObject*)((evaValue).value.object))
 
 // Testers:
 #define IS_NUMBER(evaValue) ((evaValue).type == EvaValueType::NUMBER)
@@ -64,5 +97,6 @@ struct EvaValue {
     (IS_OBJECT(evaValue) && AS_OBJECT(evaValue)->type == objectType)
 
 #define IS_STRING(evaValue) IS_OBJECT_TYPE(evaValue, ObjectType::STRING)
+#define IS_CODE(evaValue)   IS_OBJECT_TYPE(evaValue, ObjectType::CODE)
 
 #endif
