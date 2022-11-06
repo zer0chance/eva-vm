@@ -2,8 +2,8 @@
 #ifndef SRC_EVA_VM_HPP
 #define SRC_EVA_VM_HPP
 
-#include "EvaValue.hpp"
-#include "Logger.hpp"
+#include "vm/EvaValue.hpp"
+#include "logging/Logger.hpp"
 #include "parser/EvaParser.hpp"
 #include "compiler/EvaCompiler.hpp"
 

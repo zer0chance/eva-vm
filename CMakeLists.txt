@@ -8,8 +8,8 @@ include_directories(src src/parser src/compiler)
 add_executable(
   evm
   eva.cpp
-  src/EvaVM.cpp
-  src/EvaValue.cpp
+  src/vm/EvaVM.cpp
+  src/vm/EvaValue.cpp
   src/parser/EvaParser.cpp
   src/compiler/EvaCompiler.cpp
 )

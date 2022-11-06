@@ -2,7 +2,7 @@
  * EVM Launcher
 */
 
-#include "EvaVM.hpp"
+#include "vm/EvaVM.hpp"
 #include <iostream>
 
 int main(int argc, char** argv) {

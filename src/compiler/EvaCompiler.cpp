@@ -1,6 +1,6 @@
 #include "compiler/EvaCompiler.hpp"
-#include "OpCode.hpp"
-#include "Logger.hpp"
+#include "logging/Logger.hpp"
+#include "vm/OpCode.hpp"
 
 #define ALLOC_CONST(tester, converter, allocator, value) do {   \
     /* Checking if constant is already defined */               \

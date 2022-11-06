@@ -6,7 +6,7 @@
 #define SRC_COMPILER_EVACOMPILER_HPP
 
 #include "parser/EvaParser.hpp"
-#include "EvaValue.hpp"
+#include "vm/EvaValue.hpp"
 
 #include <map>
 
