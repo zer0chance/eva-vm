@@ -4,11 +4,13 @@
 
 #include "EvaValueType.hpp"
 #include "Logger.hpp"
+#include "parser/EvaParser.hpp"
 
 #include <string>
 #include <vector>
 #include <array>
 
+using syntax::EvaParser;
 
 class EvaVM final {
     /**
@@ -38,8 +40,13 @@ class EvaVM final {
 
     EvaValue stack[STACK_LIMIT];
 
+    /**
+     * Pareser.
+    */
+    std::unique_ptr<EvaParser> parser;
+
   public:
-    EvaVM() = default;
+    EvaVM() : parser(std::make_unique<EvaParser>()) {};
     /**
      * Executes passed program.
     */

@@ -9,7 +9,7 @@
 
 EvaValue EvaVM::exec(const std::string& program) {
     // 1. Parse AST
-    // auto ast = parser->parse(program);
+    auto ast = parser->parse(program);
 
     // 2. Compile AST to bytecode.
     // compiler->compile(ast);
