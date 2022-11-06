@@ -6,7 +6,7 @@
 #define SRC_COMPILER_EVACOMPILER_HPP
 
 #include "parser/EvaParser.hpp"
-#include "EvaValueType.hpp"
+#include "EvaValue.hpp"
 
 /**
  * Compiler class, emits bytecodes, records constant pools, vars, etc.

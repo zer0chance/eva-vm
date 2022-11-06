@@ -8,7 +8,7 @@
 
 #define HEX(x) "0x" << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(x)
 
-#define log_value(value) std::cout << #value << " = " << (value) << '\n'
+#define log(value) std::cout << #value << " = " << (value) << '\n'
 #define log_bc(bytecode) std::cout << HEX(bytecode) << '\n'
 
 class FatalErrorMessage : public std::basic_ostringstream<char> {

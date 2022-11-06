@@ -2,6 +2,8 @@
 #ifndef SRC_EVAVALUETYPE_HPP
 #define SRC_EVAVALUETYPE_HPP
 
+#include "Logger.hpp"
+
 #include <string>
 #include <vector>
 
@@ -98,5 +100,9 @@ struct CodeObject : public Object {
 
 #define IS_STRING(evaValue) IS_OBJECT_TYPE(evaValue, ObjectType::STRING)
 #define IS_CODE(evaValue)   IS_OBJECT_TYPE(evaValue, ObjectType::CODE)
+
+std::string evaValueToTypeStr(const EvaValue& evaValue);
+std::string evaValueToConstantString(const EvaValue& evaValue);
+std::ostream& operator<<(std::ostream& os, const EvaValue& evaValue);
 
 #endif
