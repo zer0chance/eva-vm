@@ -3,11 +3,11 @@
 std::string evaValueToTypeStr(const EvaValue& evaValue) {
     if (IS_NUMBER(evaValue)) {
         return "NUMBER";
-    }
-    if (IS_STRING(evaValue)) {
+    } else if (IS_BOOLEAN(evaValue)) {
+        return "BOOLEAN";
+    } else if (IS_STRING(evaValue)) {
         return "STRING";
-    }
-    if (IS_CODE(evaValue)) {
+    } else if (IS_CODE(evaValue)) {
         return "CODE";
     }
     DIE << "evaValueToTypeStr: unknown type";
@@ -18,6 +18,8 @@ std::string evaValueToConstantString(const EvaValue& evaValue) {
     std::stringstream ss;
     if (IS_NUMBER(evaValue)) {
         ss << evaValue.value.number;
+    } else if (IS_BOOLEAN(evaValue)) {
+        ss << (evaValue.value.boolean ? "true" : "false");
     } else if (IS_STRING(evaValue)) {
         ss << '"' << AS_CPPSTRING(evaValue) << '"';
     } else if (IS_CODE(evaValue)) {

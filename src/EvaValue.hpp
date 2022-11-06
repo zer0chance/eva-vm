@@ -12,6 +12,7 @@
 */
 enum class EvaValueType {
     NUMBER,
+    BOOLEAN,
     OBJECT
 };
 
@@ -30,6 +31,8 @@ struct Object {
 */
 struct EvaValue {
     EvaValue() {};
+    EvaValue(EvaValueType t, bool v) :
+        type(t) { value.boolean = v; };
     EvaValue(EvaValueType t, double v) :
         type(t) { value.number = v; };
     EvaValue(EvaValueType t, Object* v) :
@@ -38,6 +41,7 @@ struct EvaValue {
     EvaValueType type;
     union {
         double number;
+        bool boolean;
         Object* object;
     } value;
 };
@@ -77,7 +81,8 @@ struct CodeObject : public Object {
 };
 
 // Type constructors:
-#define NUMBER(value) EvaValue(EvaValueType::NUMBER, static_cast<double>(value))
+#define NUMBER(value)  EvaValue(EvaValueType::NUMBER, static_cast<double>(value))
+#define BOOLEAN(value) EvaValue(EvaValueType::BOOLEAN, static_cast<bool>(value))
 
 #define ALLOC_STRING(value) \
     EvaValue(EvaValueType::OBJECT, (Object*) new StringObject(value))
@@ -86,14 +91,16 @@ struct CodeObject : public Object {
 
 // Accessors:
 #define AS_NUMBER(evaValue)    ((double)((evaValue).value.number))
+#define AS_BOOLEAN(evaValue)   ((bool)((evaValue).value.boolean))
 #define AS_OBJECT(evaValue)    ((Object*)((evaValue).value.object))
 #define AS_STRING(evaValue)    ((StringObject*)((evaValue).value.object))
 #define AS_CPPSTRING(evaValue) (AS_STRING(evaValue)->string)
 #define AS_CODE(evaValue)      ((CodeObject*)((evaValue).value.object))
 
 // Testers:
-#define IS_NUMBER(evaValue) ((evaValue).type == EvaValueType::NUMBER)
-#define IS_OBJECT(evaValue) ((evaValue).type == EvaValueType::OBJECT)
+#define IS_NUMBER(evaValue)    ((evaValue).type == EvaValueType::NUMBER)
+#define IS_BOOLEAN(evaValue)   ((evaValue).type == EvaValueType::BOOLEAN)
+#define IS_OBJECT(evaValue)    ((evaValue).type == EvaValueType::OBJECT)
 
 #define IS_OBJECT_TYPE(evaValue, objectType) \
     (IS_OBJECT(evaValue) && AS_OBJECT(evaValue)->type == objectType)

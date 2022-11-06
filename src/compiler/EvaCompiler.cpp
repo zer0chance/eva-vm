@@ -21,6 +21,10 @@
     emit(op);                                                   \
 } while(0)
 
+std::map<std::string, uint8_t> EvaCompiler::cmpOps = {
+    {"<", 0}, {">", 1}, {"==", 2}, {">=", 3}, {"<=", 4}, {"!=", 5}
+};
+
 CodeObject* EvaCompiler::compile(const Exp& exp) {
     codeObj = AS_CODE(ALLOC_CODE("main"));
 
@@ -44,7 +48,13 @@ void EvaCompiler::gen(const Exp& exp) {
             break;
         
         case ExpType::SYMBOL:
-            DIE << "Unimplemented.";
+            // Booleans:
+            if (exp.string == "true" || exp.string == "false") {
+                emit(OP_CONST);
+                emit(booleanConstIdx(exp.string == "true" ? true : false));
+            } else {
+                // Variables:
+            }
             break;
         
         case ExpType::LIST: {
@@ -63,6 +73,15 @@ void EvaCompiler::gen(const Exp& exp) {
                 } else if (op == "/") {
                     GEN_BINARY_OPERATOR(OP_DIV);
                 }
+
+                // Comparison operations
+                else if (cmpOps.count(op) != 0) {
+                    gen(exp.list[1]);
+                    gen(exp.list[2]);
+
+                    emit(OP_CMP);
+                    emit(cmpOps[op]);
+                }
             }
             break;
         }
@@ -74,6 +93,11 @@ void EvaCompiler::gen(const Exp& exp) {
 
 size_t EvaCompiler::numericConstIdx(double value) {
     ALLOC_CONST(IS_NUMBER, AS_NUMBER, NUMBER, value);
+    return codeObj->constants.size() - 1;
+}
+
+size_t EvaCompiler::booleanConstIdx(bool value) {
+    ALLOC_CONST(IS_BOOLEAN, AS_BOOLEAN, BOOLEAN, value);
     return codeObj->constants.size() - 1;
 }
 

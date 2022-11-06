@@ -1,10 +1,37 @@
 #include "EvaVM.hpp"
 #include "OpCode.hpp"
 
-#define BINARY_OP(op) do {       \
-    auto op2 = AS_NUMBER(pop()); \
-    auto op1 = AS_NUMBER(pop()); \
-    push(NUMBER(op1 op op2));    \
+#define BINARY_OP(op) do {              \
+    auto op2 = AS_NUMBER(pop());        \
+    auto op1 = AS_NUMBER(pop());        \
+    push(NUMBER(op1 op op2));           \
+} while (0)
+
+#define COMPARE_VALUES(op, v1, v2) do { \
+    bool res;                           \
+    switch (op) {                       \
+    case 0:                             \
+        res = v1 < v2;                  \
+        break;                          \
+    case 1:                             \
+        res = v1 > v2;                  \
+        break;                          \
+    case 2:                             \
+        res = v1 == v2;                 \
+        break;                          \
+    case 3:                             \
+        res = v1 >= v2;                 \
+        break;                          \
+    case 4:                             \
+        res = v1 <= v2;                 \
+        break;                          \
+    case 5:                             \
+        res = v1 != v2;                 \
+        break;                          \
+    default:                            \
+        DIE << "Bad comparison op!";    \
+    }                                   \
+    push(BOOLEAN(res));                 \
 } while (0)
 
 EvaValue EvaVM::exec(const std::string& program) {
@@ -36,7 +63,7 @@ EvaValue EvaVM::eval() {
             push(codeObj->constants[next_opcode()]);
             break;
         
-        case OP_ADD:{
+        case OP_ADD: {
             auto op2 = pop();
             auto op1 = pop();
 
@@ -66,6 +93,25 @@ EvaValue EvaVM::eval() {
         case OP_DIV:
             BINARY_OP(/);
             break;
+        
+        case OP_CMP: {
+            auto op = next_opcode();
+
+            auto op2 = pop();
+            auto op1 = pop();
+
+            if (IS_NUMBER(op1) && IS_NUMBER(op2)) {
+                auto v1 = AS_NUMBER(op1);
+                auto v2 = AS_NUMBER(op2);
+                COMPARE_VALUES(op, v1, v2);
+            } else if (IS_STRING(op1) && IS_STRING(op2)) {
+                auto s1 = AS_CPPSTRING(op1);
+                auto s2 = AS_CPPSTRING(op2);
+                COMPARE_VALUES(op, s1, s2);
+            }
+
+            break;
+        }
 
         default:
             DIE << "Illegal bytecode: " << HEX(bytecode) << '\n';

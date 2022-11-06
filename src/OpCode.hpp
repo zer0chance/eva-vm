@@ -2,18 +2,21 @@
 #ifndef SRC_OPCODE_HPP
 #define SRC_OPCODE_HPP
 
-using bytecode = uint8_t;
+using ByteCode = uint8_t;
 
 // Stops the VM
-constexpr bytecode OP_HALT  = 0x00;
+constexpr ByteCode OP_HALT  = 0x00;
 
 // Push a constant on stack
-constexpr bytecode OP_CONST = 0x01;
+constexpr ByteCode OP_CONST = 0x01;
 
 // Binary math operations
-constexpr bytecode OP_ADD   = 0x02;
-constexpr bytecode OP_SUB   = 0x03;
-constexpr bytecode OP_MUL   = 0x04;
-constexpr bytecode OP_DIV   = 0x05;
+constexpr ByteCode OP_ADD   = 0x02;
+constexpr ByteCode OP_SUB   = 0x03;
+constexpr ByteCode OP_MUL   = 0x04;
+constexpr ByteCode OP_DIV   = 0x05;
+
+// Comparison operation
+constexpr ByteCode OP_CMP   = 0x06;
 
 #endif
