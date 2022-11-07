@@ -34,6 +34,8 @@
     push(BOOLEAN(res));                 \
 } while (0)
 
+#define TO_ADDRESS(index) (&codeObj->code[index])
+
 EvaValue EvaVM::exec(const std::string& program) {
     // 1. Parse AST
     auto ast = parser->parse(program);
@@ -110,6 +112,22 @@ EvaValue EvaVM::eval() {
                 COMPARE_VALUES(op, s1, s2);
             }
 
+            break;
+        }
+
+        case OP_JMP: {
+            ip = TO_ADDRESS(next_short());
+            break;
+        }
+
+        case OP_JMP_IF_FALSE: {
+            auto cond = AS_BOOLEAN(pop()); // TODO: TO_BOOLEAN converter
+
+            auto address = next_short();
+
+            if (!cond) {
+                ip = TO_ADDRESS(address);
+            }
             break;
         }
 

@@ -57,6 +57,21 @@ class EvaCompiler {
      * Allocates string constant in constant pool.
     */
     size_t stringConstIdx(const std::string& value);
+
+    /**
+     * Returns current bytecode offset.
+    */
+    size_t getCurrentOffset() { return codeObj->code.size(); }
+
+    /**
+     * Writing byte in specified offset.
+    */
+    void writeByteAtOffset(uint8_t byte, size_t offset) { codeObj->code[offset] = byte; }
+
+    /**
+     * Patches jump address.
+    */
+    void patchJumpAddres(size_t offset, uint16_t value);
 };
 
 #endif

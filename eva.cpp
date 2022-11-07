@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     EvaVM evm;
 
     auto result = evm.exec(R"(
-        (<= 5 5)
+        (if (< 5 6) 5 6)
     )");
 
     std::cout << "\nVM exited gracefully with value: " << result;

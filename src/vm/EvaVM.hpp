@@ -63,6 +63,12 @@ class EvaVM final {
         return *ip++;
     }
 
+    const uint16_t next_short() {
+        // Return current opcode and increment IP
+        ip += 2;
+        return (uint16_t)((ip[-2] << 8) | ip[-1]);
+    }
+
     const void push(const EvaValue& value) {
         // Push the value on TOS and increment SP
         if ((size_t) (sp - stack) == STACK_LIMIT) {

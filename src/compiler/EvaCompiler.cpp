@@ -74,13 +74,47 @@ void EvaCompiler::gen(const Exp& exp) {
                     GEN_BINARY_OPERATOR(OP_DIV);
                 }
 
-                // Comparison operations
+                // Comparison operations:
                 else if (cmpOps.count(op) != 0) {
                     gen(exp.list[1]);
                     gen(exp.list[2]);
 
                     emit(OP_CMP);
                     emit(cmpOps[op]);
+                }
+
+                // Branch instructions:
+                // (if <test> <consequent> <alternate>)
+                else if (op == "if") {
+                    // Emit <test>
+                    gen(exp.list[1]);
+
+                    // Else branch initialized with 0 and patched later
+                    // Takes 2 bytes
+                    emit(OP_JMP_IF_FALSE);
+                    emit(0);
+                    emit(0);
+
+                    auto elseJmpAddr = getCurrentOffset() - 2;
+
+                    // Emit <consequent>
+                    gen(exp.list[2]);
+                    emit(OP_JMP);
+                    emit(0);
+                    emit(0);
+
+                    auto endJmpAddr = getCurrentOffset() - 2;
+
+                    auto elseBranchAddr = getCurrentOffset();
+                    patchJumpAddres(elseJmpAddr, elseBranchAddr);
+
+                    // Emit alternate if we have it
+                    if (exp.list.size() == 4) {
+                        gen(exp.list[3]);
+                    }
+
+                    auto endBranchAddr = getCurrentOffset();
+                    patchJumpAddres(endJmpAddr, endBranchAddr);
                 }
             }
             break;
@@ -108,4 +142,9 @@ size_t EvaCompiler::stringConstIdx(const std::string& value) {
 
 void EvaCompiler::emit(uint8_t code) {
     codeObj->code.push_back(code);
+}
+
+void EvaCompiler::patchJumpAddres(size_t offset, uint16_t value) {
+    writeByteAtOffset(value >> 8 & 0xFF, offset);
+    writeByteAtOffset(value & 0xFF, offset + 1);
 }
