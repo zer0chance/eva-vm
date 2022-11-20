@@ -2,6 +2,8 @@
 #ifndef SRC_OPCODE_HPP
 #define SRC_OPCODE_HPP
 
+#include <string>
+
 using ByteCode = uint8_t;
 
 // Stops the VM
@@ -22,5 +24,7 @@ constexpr ByteCode OP_CMP           = 0x06;
 // Branch instructions
 constexpr ByteCode OP_JMP           = 0x07;
 constexpr ByteCode OP_JMP_IF_FALSE  = 0x08;
+
+std::string opcodeToString(ByteCode opcode);
 
 #endif

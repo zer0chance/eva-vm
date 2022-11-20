@@ -43,13 +43,11 @@ EvaValue EvaVM::exec(const std::string& program) {
     // 2. Compile AST to bytecode.
     codeObj = compiler->compile(ast);
 
-    // constants.push_back(NUMBER(3));
-    // constants.push_back(NUMBER(1));
-
-    // code = { OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT };
-
     ip = &codeObj->code[0];
     sp = &stack[0];
+
+    // Debug assembly
+    compiler->disassembleBytecode();
 
     return eval();
 }

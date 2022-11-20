@@ -9,7 +9,9 @@ add_executable(
   evm
   eva.cpp
   src/vm/EvaVM.cpp
+  src/vm/OpCode.cpp
   src/vm/EvaValue.cpp
   src/parser/EvaParser.cpp
   src/compiler/EvaCompiler.cpp
+  src/disassembler/EvaDisassembler.cpp
 )

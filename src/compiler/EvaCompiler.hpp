@@ -5,10 +5,12 @@
 #ifndef SRC_COMPILER_EVACOMPILER_HPP
 #define SRC_COMPILER_EVACOMPILER_HPP
 
-#include "parser/EvaParser.hpp"
 #include "vm/EvaValue.hpp"
+#include "parser/EvaParser.hpp"
+#include "disassembler/EvaDisassembler.hpp"
 
 #include <map>
+#include <memory>
 
 /**
  * Compiler class, emits bytecodes, records constant pools, vars, etc.
@@ -24,13 +26,25 @@ class EvaCompiler {
    */
    static std::map<std::string, uint8_t> cmpOps;
 
+   /**
+    * Disassembler.
+   */
+   std::unique_ptr<EvaDisassembler> disassembler;
+
   public:
-    EvaCompiler() = default;
+    EvaCompiler() : disassembler(std::make_unique<EvaDisassembler>()) {};
 
     /**
      * Main compiling API.
     */
     CodeObject* compile(const Exp& exp);
+
+    /**
+     * Disassembly method.
+    */
+    void disassembleBytecode() {
+      disassembler->disassemble(codeObj);
+    }
   
   private:
     /**
