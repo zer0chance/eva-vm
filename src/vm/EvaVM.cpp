@@ -129,9 +129,27 @@ EvaValue EvaVM::eval() {
             break;
         }
 
+        case OP_GET_GLOBAL: {
+            auto globalIndex = next_opcode();
+            push(global->get(globalIndex).value);
+            break;
+        }
+
+        case OP_SET_GLOBAL: {
+            auto globalIndex = next_opcode();
+            auto value = peek();
+            global->set(globalIndex, value);
+            break;
+        }
+
         default:
             DIE << "Illegal bytecode: " << HEX(bytecode) << '\n';
             break;
         }
     }
+}
+
+void EvaVM::setGlobalVariables() {
+    global->addConst("x", 10);
+    // global->addConst("y", 20);
 }

@@ -33,6 +33,9 @@ size_t EvaDisassembler::disassembleInstruction(CodeObject* co, size_t offset) {
         case OP_JMP:
         case OP_JMP_IF_FALSE:
             return disassembleJump(co, opcode, offset);
+        case OP_GET_GLOBAL:
+        case OP_SET_GLOBAL:
+            return disassembleGlobal(co, opcode, offset);
         default:
             DIE << "disassemblyInstruction: no disassembly for "
                 << opcodeToString(opcode);
@@ -71,6 +74,15 @@ size_t EvaDisassembler::disassembleCompare(CodeObject* co, ByteCode opcode, size
     return offset + 2;
 }
 
+size_t EvaDisassembler::disassembleGlobal(CodeObject* co, ByteCode opcode, size_t offset) {
+    dumpBytes(co, offset, 2);
+    printOpcode(opcode);
+    auto globalIndex = co->code[offset + 1];
+    std::cout << (int)globalIndex << " (" << global->get(globalIndex).name << ')'; 
+
+    return offset + 2;
+}
+
 uint16_t readWordAtOffset(CodeObject* co, size_t offset) {
     return (uint16_t)((co->code[offset]) << 8 | co->code[offset + 1]);
 }
@@ -96,7 +108,7 @@ void EvaDisassembler::dumpBytes(CodeObject* co, size_t offset, size_t count) {
 
     for (size_t i = 0; i < count; i++) {
         ss << std::uppercase << std::hex << std::setfill('0') << std::setw(2)
-              << ((int)co->code[offset + i] && 0xFF) << " ";
+           << ((int)co->code[offset + i] & 0xFF) << " ";
     }
     
     std::cout << std::left << std::setfill(' ') << std::setw(12) << ss.str();

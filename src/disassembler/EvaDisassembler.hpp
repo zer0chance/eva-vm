@@ -6,17 +6,29 @@
 
 #include "vm/EvaValue.hpp"
 #include "vm/OpCode.hpp"
+#include "vm/Global.hpp"
 
 #include <array>
+#include <memory>
 
 class EvaDisassembler {
   public:
+    EvaDisassembler(std::shared_ptr<Global> global) : global(global) {}
+
     /**
      * Disassembles the code unit.
     */
     void disassemble(CodeObject* co);
 
   private:
+    /**
+     * Global object. Shared with VM.
+    */
+    std::shared_ptr<Global> global;
+
+    /**
+     * Comparison operators as a strings.
+    */
     static std::array<std::string, 6> inverseCompareOps;
 
     /**
@@ -33,6 +45,11 @@ class EvaDisassembler {
      * Disassembles const instruction.
     */
     size_t disassembleConst(CodeObject* co, ByteCode opcode, size_t offset);
+
+    /**
+     * Disassembles global variables.
+    */
+    size_t disassembleGlobal(CodeObject* co, ByteCode opcode, size_t offset);
 
     /**
      * Disassembles compare instruction.

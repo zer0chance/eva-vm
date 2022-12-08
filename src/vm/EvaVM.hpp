@@ -2,6 +2,7 @@
 #ifndef SRC_EVA_VM_HPP
 #define SRC_EVA_VM_HPP
 
+#include "vm/Global.hpp"
 #include "vm/EvaValue.hpp"
 #include "logging/Logger.hpp"
 #include "parser/EvaParser.hpp"
@@ -30,6 +31,11 @@ class EvaVM final {
     EvaValue stack[STACK_LIMIT];
 
     /**
+     * Global object. Shared with compiler.
+    */
+    std::shared_ptr<Global> global;
+
+    /**
      * Pareser.
     */
     std::unique_ptr<EvaParser> parser;
@@ -45,8 +51,11 @@ class EvaVM final {
     CodeObject* codeObj;
 
   public:
-    EvaVM() : parser(std::make_unique<EvaParser>()),
-              compiler(std::make_unique<EvaCompiler>()) {};
+    EvaVM() : global(std::make_shared<Global>()),
+              parser(std::make_unique<EvaParser>()),
+              compiler(std::make_unique<EvaCompiler>(global)) {
+        setGlobalVariables();
+    };
 
     /**
      * Executes passed program.
@@ -79,6 +88,9 @@ class EvaVM final {
         ++sp;
     }
 
+    /**
+     * Pops the value from the stack.
+    */
     EvaValue pop() {
         // Return value on TOS and decrement SP
         if (sp == &stack[0]) {
@@ -88,6 +100,23 @@ class EvaVM final {
         --sp;
         return *sp;
     }
+
+    /**
+     * Peeks the value from the stack at offset without poping it.
+    */
+    EvaValue peek(size_t offset = 0) {
+        // Return value on TOS and decrement SP
+        if (sp == &stack[0]) {
+            DIE << "pop(): empty stack";
+        }
+
+        return *(sp - 1 - offset);
+    }
+
+    /**
+     * Sets up global variables.
+    */
+    void setGlobalVariables();
 };
 
 #endif

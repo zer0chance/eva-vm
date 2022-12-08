@@ -26,13 +26,20 @@ class EvaCompiler {
    */
    static std::map<std::string, uint8_t> cmpOps;
 
+    /**
+     * Global object. Shared with VM.
+    */
+    std::shared_ptr<Global> global;
+
    /**
     * Disassembler.
    */
    std::unique_ptr<EvaDisassembler> disassembler;
 
   public:
-    EvaCompiler() : disassembler(std::make_unique<EvaDisassembler>()) {};
+    EvaCompiler(std::shared_ptr<Global> global) :
+        global(global),
+        disassembler(std::make_unique<EvaDisassembler>(global)) {};
 
     /**
      * Main compiling API.
