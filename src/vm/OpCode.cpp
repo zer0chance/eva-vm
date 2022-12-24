@@ -19,6 +19,10 @@ std::string opcodeToString(ByteCode opcode) {
         OP_STR(JMP_IF_FALSE);
         OP_STR(GET_GLOBAL);
         OP_STR(SET_GLOBAL);
+        OP_STR(POP);
+        OP_STR(SET_LOCAL);
+        OP_STR(GET_LOCAL);
+        OP_STR(SCOPE_EXIT);
         default:
             DIE << "Unknown bytecode: " << HEX(opcode);
             return "";

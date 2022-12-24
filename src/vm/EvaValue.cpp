@@ -36,3 +36,15 @@ std::ostream& operator<<(std::ostream& os, const EvaValue& evaValue) {
     return os << "EvaValue (" << evaValueToTypeStr(evaValue) << "): "
               << evaValueToConstantString(evaValue);
 }
+
+int CodeObject::getLocalIndex(const std::string& name) {
+    if (locals.size() > 0) {
+        for (int i = 0; i < (int)locals.size(); i++) {
+            if (locals[i].name == name) {
+                return i;
+            }
+        }
+    }
+
+    return -1; // Not found
+}

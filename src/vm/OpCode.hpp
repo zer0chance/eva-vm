@@ -28,6 +28,12 @@ enum ByteCodes : ByteCode {
     // Globals
     OP_GET_GLOBAL    = 0x09,
     OP_SET_GLOBAL    = 0x0A,
+
+    // Pop value from the stack
+    OP_POP           = 0x0B,
+    OP_SET_LOCAL     = 0x0C,
+    OP_GET_LOCAL     = 0x0D,
+    OP_SCOPE_EXIT    = 0x0E,
 };
 
 std::string opcodeToString(ByteCode opcode);

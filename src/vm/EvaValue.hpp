@@ -56,6 +56,11 @@ struct StringObject : public Object {
     std::string string;
 };
 
+struct LocalVar {
+    std::string name;
+    size_t scopeLevel;
+};
+
 /**
  * CodeObject contains compiled bytecode, locals and
  * other state needed to function execution.
@@ -78,6 +83,28 @@ struct CodeObject : public Object {
      * Constant pool.
     */
     std::vector<EvaValue> constants;
+
+    /**
+     * Current scope level.
+    */
+    size_t scopeLevel = 0;
+
+    /**
+     * Local variables and functions.
+    */
+    std::vector<LocalVar> locals;
+
+    /**
+     * Defines new local variable.
+    */
+    void addLocal(const std::string& name) {
+        locals.push_back({name, scopeLevel});
+    }
+
+    /**
+     * Returns inxed of the local variabel or -1 if not found.
+    */
+    int getLocalIndex(const std::string& name);
 };
 
 // Type constructors:

@@ -24,6 +24,11 @@ class EvaVM final {
     EvaValue* sp;
 
     /**
+     * Base pointer.
+    */
+    EvaValue* bp;
+
+    /**
      * Stack.
     */
     static constexpr size_t STACK_LIMIT = 1024;
@@ -98,6 +103,14 @@ class EvaVM final {
         }
 
         --sp;
+        return *sp;
+    }
+
+    /**
+     * Pops N values from the stack.
+    */
+    EvaValue popN(size_t N) {
+        for (size_t i = 0; i < N; i++) pop();
         return *sp;
     }
 

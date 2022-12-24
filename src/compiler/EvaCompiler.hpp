@@ -93,6 +93,47 @@ class EvaCompiler {
      * Patches jump address.
     */
     void patchJumpAddres(size_t offset, uint16_t value);
+
+    /**
+     * Enter and exit block scope.
+    */
+    void scopeEnter() { codeObj->scopeLevel++; }
+    void scopeExit ();
+    bool isGlobalScope() { return codeObj->name == "main" && codeObj->scopeLevel == 1; }
+
+    /**
+     * Whether the expression is declaration.
+    */
+    bool isDeclaration(const Exp& exp) { return isVarDeclaration(exp); }
+
+    /**
+     * (var <name> <value>)
+    */
+    bool isVarDeclaration(const Exp& exp) { return isTaggedList(exp, "var"); }
+
+    /**
+     * Tagged list.
+    */
+    bool isTaggedList(const Exp& exp, const std::string& tag) {
+      return exp.type == ExpType::LIST && exp.list[0].type == ExpType::SYMBOL
+             && exp.list[0].string == tag;
+    }
+
+    /**
+     * Pops variables from current scope and return the amount of them.
+    */
+    size_t getVarCountOnScopeExit() {
+      size_t varsCount = 0;
+      if (codeObj->locals.size() > 0) {
+        while(codeObj->locals.back().scopeLevel == codeObj->scopeLevel) {
+          codeObj->locals.pop_back();
+          varsCount++;
+        }
+      }
+      
+      return varsCount;
+    }
+    
 };
 
 #endif

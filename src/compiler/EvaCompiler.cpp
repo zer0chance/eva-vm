@@ -53,13 +53,24 @@ void EvaCompiler::gen(const Exp& exp) {
                 emit(OP_CONST);
                 emit(booleanConstIdx(exp.string == "true" ? true : false));
             } else {
-                // Global variables:
-                if (!global->exists(exp.string)) {
-                    DIE << "[EvaCompiler] Reference error: " << exp.string;
+                auto varName = exp.string;
+
+                // Local variables
+                auto localIndex = codeObj->getLocalIndex(varName);
+                if (localIndex != -1) {
+                    emit(OP_GET_LOCAL);
+                    emit(codeObj->getLocalIndex(varName));
                 }
 
-                emit(OP_GET_GLOBAL);
-                emit(global->getGlobalIndex(exp.string));
+                // Global variables
+                else {
+                    if (!global->exists(varName)) {
+                        DIE << "[EvaCompiler] Reference error: " << varName;
+                    }
+
+                    emit(OP_GET_GLOBAL);
+                    emit(global->getGlobalIndex(varName));
+                }
             }
             break;
         
@@ -124,29 +135,65 @@ void EvaCompiler::gen(const Exp& exp) {
                 }
 
                 else if (op == "var") {
-                    // Global variables
-                    global->define(exp.list[1].string);
-
+                    auto varName = exp.list[1].string;   
+        
                     // Initializer
                     gen(exp.list[2]);
 
-                    emit(OP_SET_GLOBAL);
-                    emit(global->getGlobalIndex(exp.list[1].string));
+                    // Global variables
+                    if (isGlobalScope()) {
+                        global->define(varName);
+                        emit(OP_SET_GLOBAL);
+                        emit(global->getGlobalIndex(varName));
+                    }
+
+                    // Local variables
+                    else {
+                        codeObj->addLocal(varName);
+                        emit(OP_SET_LOCAL);
+                        emit(codeObj->getLocalIndex(varName));
+                    }
                 }
 
                 else if (op == "set") {
-                    // Global variables
                     auto varName = exp.list[1].string;
-                    auto globalIndex = global->getGlobalIndex(varName);
-                    if (globalIndex == -1) {
-                        DIE << "Reference error: " << varName << "is not defined.";
+
+                    // Local variables
+                    auto localIndex = codeObj->getLocalIndex(varName);
+                    if (localIndex != -1) {
+                        emit(OP_SET_LOCAL);
+                        emit(localIndex);
                     }
 
-                    // Initializer
-                    gen(exp.list[2]);
+                    // Global variables
+                    else {
+                        auto globalIndex = global->getGlobalIndex(varName);
+                        if (globalIndex == -1) {
+                            DIE << "Reference error: " << varName << " is not defined.";
+                        }
 
-                    emit(OP_SET_GLOBAL);
-                    emit(globalIndex);
+                        // Initializer
+                        gen(exp.list[2]);
+
+                        emit(OP_SET_GLOBAL);
+                        emit(globalIndex);
+                    }
+                }
+
+                else if (op == "begin") {
+                    scopeEnter();
+                    for (size_t i = 1; i < exp.list.size(); i++) {
+                        // The value of the last expression is kept on the stack as the
+                        // result of the block. Everything else must be popped from stack.
+                        bool isLast = i == exp.list.size() - 1;
+                        
+                        // Local variables of functions should not be popped.
+                        auto isLocalDeclaration = isDeclaration(exp.list[i]) && !isGlobalScope();
+                        gen(exp.list[i]);
+
+                        if (!isLast && !isLocalDeclaration) emit(OP_POP);
+                    }
+                    scopeExit();
                 }
             }
             break;
@@ -179,4 +226,16 @@ void EvaCompiler::emit(uint8_t code) {
 void EvaCompiler::patchJumpAddres(size_t offset, uint16_t value) {
     writeByteAtOffset(value >> 8 & 0xFF, offset);
     writeByteAtOffset(value & 0xFF, offset + 1);
+}
+
+void EvaCompiler::scopeExit() {
+    // Pops all local variables that was define in this scope
+    auto varCount = getVarCountOnScopeExit();
+
+    if (varCount > 0) {
+        emit(OP_SCOPE_EXIT);
+        emit(varCount);
+    } 
+
+    codeObj->scopeLevel--;
 }

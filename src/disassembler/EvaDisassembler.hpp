@@ -42,6 +42,11 @@ class EvaDisassembler {
     size_t disassembleSimple(CodeObject* co, ByteCode opcode, size_t offset);
 
     /**
+     * Disassembles two bytes.
+    */
+    size_t disassembleWord(CodeObject* co, ByteCode opcode, size_t offset);
+
+    /**
      * Disassembles const instruction.
     */
     size_t disassembleConst(CodeObject* co, ByteCode opcode, size_t offset);
@@ -50,6 +55,11 @@ class EvaDisassembler {
      * Disassembles global variables.
     */
     size_t disassembleGlobal(CodeObject* co, ByteCode opcode, size_t offset);
+
+    /**
+     * Disassembles local variables.
+    */
+    size_t disassembleLocal(CodeObject* co, ByteCode opcode, size_t offset);
 
     /**
      * Disassembles compare instruction.

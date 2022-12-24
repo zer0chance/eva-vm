@@ -38,13 +38,14 @@
 
 EvaValue EvaVM::exec(const std::string& program) {
     // 1. Parse AST
-    auto ast = parser->parse(program);
+    auto ast = parser->parse("(begin " + program + ")");
 
     // 2. Compile AST to bytecode.
     codeObj = compiler->compile(ast);
 
     ip = &codeObj->code[0];
     sp = &stack[0];
+    bp = sp;
 
     // Debug assembly
     compiler->disassembleBytecode();
@@ -142,6 +143,39 @@ EvaValue EvaVM::eval() {
             break;
         }
 
+        case OP_GET_LOCAL: {
+            auto localIndex = next_opcode();
+            if (0 < localIndex && localIndex >= STACK_LIMIT) {
+                DIE << "OP_GET_LOCAL: invalid variable index: " << (int)localIndex;
+            }
+            push(bp[localIndex]);
+            break;
+        }
+
+        case OP_SET_LOCAL: {
+            auto localIndex = next_opcode();
+            auto value = peek(0);
+            if (0 < localIndex && localIndex >= STACK_LIMIT) {
+                DIE << "OP_GET_LOCAL: invalid variable index: " << (int)localIndex;
+            }
+            bp[localIndex] = value;
+            break;
+        }
+
+        case OP_SCOPE_EXIT: {
+            auto vars = next_opcode();
+
+            *(sp - 1 - vars) = peek();
+
+            popN(vars);
+            break;
+        }
+
+        case OP_POP: {
+            pop();
+            break;
+        }
+
         default:
             DIE << "Illegal bytecode: " << HEX(bytecode) << '\n';
             break;
@@ -150,6 +184,5 @@ EvaValue EvaVM::eval() {
 }
 
 void EvaVM::setGlobalVariables() {
-    global->addConst("x", 10);
-    // global->addConst("y", 20);
+    global->addConst("VERSION", 2);
 }
