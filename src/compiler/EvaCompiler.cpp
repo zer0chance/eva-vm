@@ -134,6 +134,34 @@ void EvaCompiler::gen(const Exp& exp) {
                     patchJumpAddres(endJmpAddr, endBranchAddr);
                 }
 
+                // (while <test> <body>)
+                else if (op == "while") {
+                    auto loopStartAddr = getCurrentOffset();
+
+                    // Emit <test>
+                    gen(exp.list[1]);
+
+                    emit(OP_JMP_IF_FALSE);
+
+                    // Emit 2 bytes address placeholder
+                    emit(0);
+                    emit(0);
+
+                    auto loopEndJmpAddress = getCurrentOffset() - 2;
+                    
+                    // Emit <body>
+                    gen(exp.list[2]);
+
+                    emit(OP_JMP);
+                    emit(0);
+                    emit(0);
+                    
+                    patchJumpAddres(getCurrentOffset() - 2, loopStartAddr);
+                    patchJumpAddres(loopEndJmpAddress, getCurrentOffset() + 1);
+                }
+
+                // TODO: for loop
+
                 else if (op == "var") {
                     auto varName = exp.list[1].string;   
         

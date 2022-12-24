@@ -9,19 +9,17 @@ int main(int argc, char** argv) {
     EvaVM evm;
 
     auto result = evm.exec(R"(
-        (var x 5)
-        (set x (+ x 10))
+        (var i 10)
+        (var count 0)
 
-        (begin
-            (set x 100)
+        (while (> i 0)
             (begin
-                (var x 200)
-                x
+                (set i (- i 1))
+                (set count (+ count 1))
             )
-            x
         )
         
-        x
+        count
     )");
 
     std::cout << "\nVM exited gracefully with value: " << result;
