@@ -55,6 +55,7 @@ EvaValue EvaVM::exec(const std::string& program) {
 
 EvaValue EvaVM::eval() {
     while(true) {
+        dumpStack();
         auto bytecode = next_opcode();
         switch (bytecode) {
         case OP_HALT:
@@ -176,6 +177,25 @@ EvaValue EvaVM::eval() {
             break;
         }
 
+        case OP_CALL: {
+            auto argc = next_opcode();
+            auto fnValue = peek(argc);
+
+            // Native functions:
+            if (IS_NATIVE(fnValue)) {
+                AS_NATIVE(fnValue)->function();
+
+                auto result = pop();
+
+                popN(argc + 1); // Pop all arguments + function
+                push(result);
+
+                break;
+            }
+
+            // User functions:
+        }
+
         default:
             DIE << "Illegal bytecode: " << HEX(bytecode) << '\n';
             break;
@@ -184,5 +204,36 @@ EvaValue EvaVM::eval() {
 }
 
 void EvaVM::setGlobalVariables() {
+    // Native functions:
+    global->addNativeFunction(
+        "square",
+        [&](){
+            auto x = AS_NUMBER(peek());
+            push(NUMBER(x * x));
+        },
+        1 // argc
+    );
+
+    global->addNativeFunction(
+        "max",
+        [&](){
+            auto x = AS_NUMBER(peek());
+            auto y = AS_NUMBER(peek(1));
+            push(NUMBER(x > y ? x : y));
+        },
+        2 // argc
+    );
+
+    global->addNativeFunction(
+        "min",
+        [&](){
+            auto x = AS_NUMBER(peek());
+            auto y = AS_NUMBER(peek(1));
+            push(NUMBER(x < y ? x : y));
+        },
+        2 // argc
+    );
+
+    // GlobalVariables:
     global->addConst("VERSION", 2);
 }

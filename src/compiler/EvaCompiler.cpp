@@ -223,6 +223,17 @@ void EvaCompiler::gen(const Exp& exp) {
                     }
                     scopeExit();
                 }
+
+                // Everything else is treated as a function call.
+                else {
+                    gen(exp.list[0]);
+
+                    for (size_t i = 1; i < exp.list.size(); i++) {
+                        gen(exp.list[i]);
+                    }
+                    emit(OP_CALL);
+                    emit(exp.list.size() - 1);
+                }
             }
             break;
         }

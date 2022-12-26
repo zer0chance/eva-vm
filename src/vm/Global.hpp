@@ -32,6 +32,11 @@ struct Global {
     void addConst(const std::string& name, double value);
 
     /**
+     * Adding native function to global variables.
+    */
+    void addNativeFunction(const std::string& name, std::function<void()> fn, size_t arity);
+
+    /**
      * Get an index of the global value.
     */
     int getGlobalIndex(const std::string& name);

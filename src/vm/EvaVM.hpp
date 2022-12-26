@@ -130,6 +130,21 @@ class EvaVM final {
      * Sets up global variables.
     */
     void setGlobalVariables();
+
+    /**
+     * Dumps stack to the screen.
+    */
+    void dumpStack() {
+        std::cout << "--------------------- Stack: ----------------------\n";
+        if (sp == &stack[0]) {
+            std::cout << "(empty)";
+        }
+        auto csp = sp - 1;
+        while (csp >= &stack[0]) {
+            std::cout << *csp-- << "\n";
+        }
+        std::cout << "\n";
+    }
 };
 
 #endif

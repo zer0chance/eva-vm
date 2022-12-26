@@ -23,6 +23,7 @@ std::string opcodeToString(ByteCode opcode) {
         OP_STR(SET_LOCAL);
         OP_STR(GET_LOCAL);
         OP_STR(SCOPE_EXIT);
+        OP_STR(CALL);
         default:
             DIE << "Unknown bytecode: " << HEX(opcode);
             return "";

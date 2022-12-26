@@ -34,6 +34,9 @@ enum ByteCodes : ByteCode {
     OP_SET_LOCAL     = 0x0C,
     OP_GET_LOCAL     = 0x0D,
     OP_SCOPE_EXIT    = 0x0E,
+
+    // Function call
+    OP_CALL          = 0x0F,
 };
 
 std::string opcodeToString(ByteCode opcode);

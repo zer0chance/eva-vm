@@ -13,6 +13,11 @@ void Global::addConst(const std::string& name, double value) {
     globals.push_back(GlobalVar{name, NUMBER(value)});
 }
 
+void Global::addNativeFunction(const std::string& name, std::function<void()> fn, size_t arity) {
+    if (exists(name)) return;
+    globals.push_back(GlobalVar{name, ALLOC_NATIVE(fn, name, arity)});
+}
+
 int Global::getGlobalIndex(const std::string& name) {
     if (globals.size() > 0) {
         for (int i = 0; i < (int)globals.size(); i++) {
