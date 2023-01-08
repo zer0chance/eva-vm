@@ -137,7 +137,7 @@ class EvaVM final {
     void dumpStack() {
         std::cout << "--------------------- Stack: ----------------------\n";
         if (sp == &stack[0]) {
-            std::cout << "(empty)";
+            std::cout << "(empty)\n";
         }
         auto csp = sp - 1;
         while (csp >= &stack[0]) {

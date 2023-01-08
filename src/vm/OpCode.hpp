@@ -37,6 +37,7 @@ enum ByteCodes : ByteCode {
 
     // Function call
     OP_CALL          = 0x0F,
+    OP_RETURN        = 0x10,
 };
 
 std::string opcodeToString(ByteCode opcode);

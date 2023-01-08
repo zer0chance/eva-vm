@@ -12,7 +12,7 @@
     }                                                           \
                                                                 \
     /* Defining new constant */                                 \
-    codeObj->constants.push_back(allocator(value));             \
+    codeObj->addConst(allocator(value));             \
 } while (0)
 
 #define GEN_BINARY_OPERATOR(op) do {                            \
@@ -26,7 +26,7 @@ std::map<std::string, uint8_t> EvaCompiler::cmpOps = {
 };
 
 CodeObject* EvaCompiler::compile(const Exp& exp) {
-    codeObj = AS_CODE(ALLOC_CODE("main"));
+    codeObj = AS_CODE(createCodeObjectValue("main"));
 
     gen(exp);
 
@@ -224,6 +224,62 @@ void EvaCompiler::gen(const Exp& exp) {
                     scopeExit();
                 }
 
+                else if (op == "def") {
+                    auto fnName = exp.list[1].string;
+                    auto params = exp.list[2].list;
+                    auto arity = params.size();
+                    auto body = exp.list[3];
+
+                    // Save current CodeObject to restore it later.
+                    auto prevCodeObj = codeObj;
+
+                    // New function CodeObject.
+                    auto coValue = createCodeObjectValue(fnName, arity);
+                    codeObj = AS_CODE(coValue);
+
+                    // Store new CodeObject as a constant of the previous CodeObject.
+                    prevCodeObj->addConst(coValue);
+                    codeObj->addLocal(fnName);
+
+                    // Adding arguments to the list of locals.
+                    for (size_t i = 0; i < arity; i++) {
+                        auto argName = exp.list[2].list[i].string;
+                        codeObj->addLocal(argName);
+                    }
+
+                    // Compile function body in the new code object.
+                    gen(body);
+
+                    if (!isBlock(body)) {
+                        emit(OP_SCOPE_EXIT);
+                        // Number of params + function itself.
+                        emit(arity + 1);
+                    }
+
+                    // Explicit return to restore caller address.
+                    emit(OP_RETURN);
+
+                    // Creating a function and adding it as a constant to the
+                    // previous code object.
+                    auto fn = ALLOC_FUNCTION(codeObj);
+
+                    codeObj = prevCodeObj;
+                    codeObj->addConst(fn);
+
+                    emit(OP_CONST);
+                    emit(codeObj->constants.size() - 1);
+
+                    if (isGlobalScope()) {
+                        global->define(fnName);
+                        emit(OP_SET_GLOBAL);
+                        emit(global->getGlobalIndex(fnName));
+                    } else {
+                        codeObj->addLocal(fnName);
+                        emit(OP_SET_LOCAL);
+                        emit(codeObj->getLocalIndex(fnName));
+                    }
+                }
+
                 // Everything else is treated as a function call.
                 else {
                     gen(exp.list[0]);
@@ -268,11 +324,16 @@ void EvaCompiler::patchJumpAddres(size_t offset, uint16_t value) {
 }
 
 void EvaCompiler::scopeExit() {
-    // Pops all local variables that was define in this scope
+    // Pops all local variables that was define in this scope.
     auto varCount = getVarCountOnScopeExit();
 
-    if (varCount > 0) {
+    if (varCount > 0 || codeObj->arity > 0) {
         emit(OP_SCOPE_EXIT);
+
+        if (isFunctionBody()) {
+            // Adding amount of function arguments + function itself.
+            varCount += codeObj->arity + 1;
+        }
         emit(varCount);
     } 
 

@@ -11,6 +11,8 @@ std::string evaValueToTypeStr(const EvaValue& evaValue) {
         return "CODE";
     } else if (IS_NATIVE(evaValue)) {
         return "NATIVE";
+    } else if (IS_FUNCTION(evaValue)) {
+        return "FUNCTION";
     }
     DIE << "evaValueToTypeStr: unknown type";
     return "";
@@ -26,10 +28,13 @@ std::string evaValueToConstantString(const EvaValue& evaValue) {
         ss << '"' << AS_CPPSTRING(evaValue) << '"';
     } else if (IS_CODE(evaValue)) {
         auto code = AS_CODE(evaValue);
-        ss << "code: " << code << code->name;
+        ss << "code " << code << ": " << code->name << '/' << code->arity;
     } else if (IS_NATIVE(evaValue)) {
         auto fn = AS_NATIVE(evaValue);
         ss << fn->name << '/' << fn->arity;
+    } else if (IS_FUNCTION(evaValue)) {
+        auto fn = AS_FUNCTION(evaValue);
+        ss << fn->co->name << '/' << fn->co->arity;
     } else {
         DIE << "evaValueToConstantString: unknown type";
     }

@@ -55,7 +55,7 @@ EvaValue EvaVM::exec(const std::string& program) {
 
 EvaValue EvaVM::eval() {
     while(true) {
-        dumpStack();
+        // dumpStack();
         auto bytecode = next_opcode();
         switch (bytecode) {
         case OP_HALT:
@@ -206,7 +206,7 @@ EvaValue EvaVM::eval() {
 void EvaVM::setGlobalVariables() {
     // Native functions:
     global->addNativeFunction(
-        "square",
+        "native-square",
         [&](){
             auto x = AS_NUMBER(peek());
             push(NUMBER(x * x));

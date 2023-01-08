@@ -22,6 +22,11 @@ class EvaCompiler {
    CodeObject* codeObj;
 
    /**
+    * All code objects.
+   */
+   std::vector<CodeObject*> codeObjects_;
+
+   /**
     * Comparing operations.
    */
    static std::map<std::string, uint8_t> cmpOps;
@@ -50,7 +55,9 @@ class EvaCompiler {
      * Disassembly method.
     */
     void disassembleBytecode() {
-      disassembler->disassemble(codeObj);
+      for (auto& co_ : codeObjects_) {
+        disassembler->disassemble(co_);
+      }
     }
   
   private:
@@ -99,7 +106,16 @@ class EvaCompiler {
     */
     void scopeEnter() { codeObj->scopeLevel++; }
     void scopeExit ();
+
+    /**
+     * Check if we are in global scope.
+    */
     bool isGlobalScope() { return codeObj->name == "main" && codeObj->scopeLevel == 1; }
+
+    /**
+     * Check if we are in function body.
+    */
+    bool isFunctionBody() { return codeObj->name != "main" && codeObj->scopeLevel == 1; }
 
     /**
      * Whether the expression is declaration.
@@ -110,6 +126,11 @@ class EvaCompiler {
      * (var <name> <value>)
     */
     bool isVarDeclaration(const Exp& exp) { return isTaggedList(exp, "var"); }
+
+    /**
+     * (var <name> <value>)
+    */
+    bool isBlock(const Exp& exp) { return isTaggedList(exp, "begin"); }
 
     /**
      * Tagged list.
@@ -134,6 +155,15 @@ class EvaCompiler {
       return varsCount;
     }
     
+    /**
+     * Helper function to create new CodeObject value.
+    */
+    EvaValue createCodeObjectValue(const std::string& name, size_t arity = 0) {
+      auto coValue = ALLOC_CODE(name, arity);
+      auto co = AS_CODE(coValue);
+      codeObjects_.push_back(co);
+      return coValue;
+    }
 };
 
 #endif
