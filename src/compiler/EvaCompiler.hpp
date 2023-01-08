@@ -22,6 +22,11 @@ class EvaCompiler {
    CodeObject* codeObj;
 
    /**
+    * Main entry point (function).
+   */
+   FunctionObject* main;
+
+   /**
     * All code objects.
    */
    std::vector<CodeObject*> codeObjects_;
@@ -49,7 +54,7 @@ class EvaCompiler {
     /**
      * Main compiling API.
     */
-    CodeObject* compile(const Exp& exp);
+    void compile(const Exp& exp);
 
     /**
      * Disassembly method.
@@ -59,6 +64,11 @@ class EvaCompiler {
         disassembler->disassemble(co_);
       }
     }
+
+    /**
+     * Getter for the main function.
+    */
+    FunctionObject* getMainFunction() { return this->main; }
   
   private:
     /**

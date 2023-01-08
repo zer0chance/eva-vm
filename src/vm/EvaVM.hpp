@@ -8,9 +8,29 @@
 #include "parser/EvaParser.hpp"
 #include "compiler/EvaCompiler.hpp"
 
-#include <string>
+#include <stack>
 
 using syntax::EvaParser;
+
+/**
+ * Stack frame for the function calls.
+*/
+struct Frame final {
+    /**
+     * Return address (ip) of the caller.
+    */
+    uint8_t* ra;
+
+    /**
+     * Base pointer of the caller.
+    */
+    EvaValue* bp;
+
+    /**
+     * Reference to the current frame function.
+    */
+   FunctionObject* fn;
+};
 
 class EvaVM final {
     /**
@@ -29,11 +49,15 @@ class EvaVM final {
     EvaValue* bp;
 
     /**
-     * Stack.
+     * Evaluation stack.
     */
     static constexpr size_t STACK_LIMIT = 1024;
-
     EvaValue stack[STACK_LIMIT];
+
+    /**
+     * Call stack to keep return addresses.
+    */
+    std::stack<Frame> callStack;
 
     /**
      * Global object. Shared with compiler.
@@ -51,9 +75,9 @@ class EvaVM final {
     std::unique_ptr<EvaCompiler> compiler;
 
     /**
-     * Code object.
+     * Currently executing function.
     */
-    CodeObject* codeObj;
+    FunctionObject* fn;
 
   public:
     EvaVM() : global(std::make_shared<Global>()),

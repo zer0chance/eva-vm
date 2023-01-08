@@ -25,14 +25,14 @@ std::map<std::string, uint8_t> EvaCompiler::cmpOps = {
     {"<", 0}, {">", 1}, {"==", 2}, {">=", 3}, {"<=", 4}, {"!=", 5}
 };
 
-CodeObject* EvaCompiler::compile(const Exp& exp) {
+void EvaCompiler::compile(const Exp& exp) {
+    // Allocate new code object and set it as a main function
     codeObj = AS_CODE(createCodeObjectValue("main"));
+    main = AS_FUNCTION(ALLOC_FUNCTION(codeObj));
 
     gen(exp);
 
     emit(OP_HALT);
-
-    return codeObj;
 }
 
 void EvaCompiler::gen(const Exp& exp) {

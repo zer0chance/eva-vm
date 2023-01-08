@@ -34,16 +34,17 @@
     push(BOOLEAN(res));                 \
 } while (0)
 
-#define TO_ADDRESS(index) (&codeObj->code[index])
+#define TO_ADDRESS(index) (&fn->co->code[index])
 
 EvaValue EvaVM::exec(const std::string& program) {
     // 1. Parse AST
     auto ast = parser->parse("(begin " + program + ")");
 
     // 2. Compile AST to bytecode.
-    codeObj = compiler->compile(ast);
+    compiler->compile(ast);
+    fn = compiler->getMainFunction();
 
-    ip = &codeObj->code[0];
+    ip = &fn->co->code[0];
     sp = &stack[0];
     bp = sp;
 
@@ -62,7 +63,7 @@ EvaValue EvaVM::eval() {
             return pop();
 
         case OP_CONST:
-            push(codeObj->constants[next_opcode()]);
+            push(fn->co->constants[next_opcode()]);
             break;
         
         case OP_ADD: {
@@ -194,6 +195,29 @@ EvaValue EvaVM::eval() {
             }
 
             // User functions:
+            auto callee = AS_FUNCTION(fnValue);
+
+            callStack.push(Frame{ip, bp, fn});
+
+            // To access locals, etc.
+            fn = callee;
+
+            // Set the base (frame) pointer for the callee.
+            bp = sp - argc - 1;
+            // Jump to the function code.
+            ip = &callee->co->code[0];
+
+            break;
+        }
+
+        case OP_RETURN: {
+            auto callerFrame = callStack.top();
+            ip = callerFrame.ra;
+            bp = callerFrame.bp;
+            fn = callerFrame.fn;
+
+            callStack.pop();
+            break;
         }
 
         default:
