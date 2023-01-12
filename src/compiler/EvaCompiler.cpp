@@ -35,6 +35,59 @@ void EvaCompiler::compile(const Exp& exp) {
     emit(OP_HALT);
 }
 
+void EvaCompiler::compileFunction(const Exp& exp, const std::string& fnName,
+                     const Exp& params, const Exp& body) {
+                        
+    auto arity = params.list.size();
+    // Save current CodeObject to restore it later.
+    auto prevCodeObj = codeObj;
+
+    // New function CodeObject.
+    auto coValue = createCodeObjectValue(fnName, arity);
+    codeObj = AS_CODE(coValue);
+
+    // Store new CodeObject as a constant of the previous CodeObject.
+    prevCodeObj->addConst(coValue);
+    codeObj->addLocal(fnName);
+
+    // Adding arguments to the list of locals.
+    for (size_t i = 0; i < arity; i++) {
+        auto argName = params.list[i].string;
+        codeObj->addLocal(argName);
+    }
+
+    // Compile function body in the new code object.
+    gen(body);
+
+    if (!isBlock(body)) {
+        emit(OP_SCOPE_EXIT);
+        // Number of params + function itself.
+        emit(arity + 1);
+    }
+
+    // Explicit return to restore caller address.
+    emit(OP_RETURN);
+
+    // Creating a function and adding it as a constant to the
+    // previous code object.
+    auto fn = ALLOC_FUNCTION(codeObj);
+
+    codeObj = prevCodeObj;
+    codeObj->addConst(fn);
+
+    emit(OP_CONST);
+    emit(codeObj->constants.size() - 1);
+}
+
+#define FUNCTION_CALL(exp) do {                     \
+    gen(exp.list[0]);                               \
+    for (size_t i = 1; i < exp.list.size(); i++) {  \
+        gen(exp.list[i]);                           \
+    }                                               \
+    emit(OP_CALL);                                  \
+    emit(exp.list.size() - 1);                      \
+    } while(0)
+
 void EvaCompiler::gen(const Exp& exp) {
     switch (exp.type) {
         case ExpType::NUMBER:
@@ -165,8 +218,15 @@ void EvaCompiler::gen(const Exp& exp) {
                 else if (op == "var") {
                     auto varName = exp.list[1].string;   
         
-                    // Initializer
-                    gen(exp.list[2]);
+                    // Initializer or lambda function
+                    if (isLambda(exp.list[2])) {
+                        compileFunction(exp.list[2],
+                                        varName, 
+                                        exp.list[2].list[1],
+                                        exp.list[2].list[2]);
+                    } else {
+                        gen(exp.list[2]);
+                    }
 
                     // Global variables
                     if (isGlobalScope()) {
@@ -224,50 +284,14 @@ void EvaCompiler::gen(const Exp& exp) {
                     scopeExit();
                 }
 
+                else if (op == "lambda") {
+                    compileFunction(exp, "lambda", exp.list[1], exp.list[2]);
+                }
+
                 else if (op == "def") {
                     auto fnName = exp.list[1].string;
-                    auto params = exp.list[2].list;
-                    auto arity = params.size();
-                    auto body = exp.list[3];
 
-                    // Save current CodeObject to restore it later.
-                    auto prevCodeObj = codeObj;
-
-                    // New function CodeObject.
-                    auto coValue = createCodeObjectValue(fnName, arity);
-                    codeObj = AS_CODE(coValue);
-
-                    // Store new CodeObject as a constant of the previous CodeObject.
-                    prevCodeObj->addConst(coValue);
-                    codeObj->addLocal(fnName);
-
-                    // Adding arguments to the list of locals.
-                    for (size_t i = 0; i < arity; i++) {
-                        auto argName = exp.list[2].list[i].string;
-                        codeObj->addLocal(argName);
-                    }
-
-                    // Compile function body in the new code object.
-                    gen(body);
-
-                    if (!isBlock(body)) {
-                        emit(OP_SCOPE_EXIT);
-                        // Number of params + function itself.
-                        emit(arity + 1);
-                    }
-
-                    // Explicit return to restore caller address.
-                    emit(OP_RETURN);
-
-                    // Creating a function and adding it as a constant to the
-                    // previous code object.
-                    auto fn = ALLOC_FUNCTION(codeObj);
-
-                    codeObj = prevCodeObj;
-                    codeObj->addConst(fn);
-
-                    emit(OP_CONST);
-                    emit(codeObj->constants.size() - 1);
+                    compileFunction(exp, fnName, exp.list[2], exp.list[3]);
 
                     if (isGlobalScope()) {
                         global->define(fnName);
@@ -282,15 +306,15 @@ void EvaCompiler::gen(const Exp& exp) {
 
                 // Everything else is treated as a function call.
                 else {
-                    gen(exp.list[0]);
-
-                    for (size_t i = 1; i < exp.list.size(); i++) {
-                        gen(exp.list[i]);
-                    }
-                    emit(OP_CALL);
-                    emit(exp.list.size() - 1);
+                    FUNCTION_CALL(exp);
                 }
             }
+
+            // Lambda function calls: ((lambda (x) (* x x)) 2)
+            else {
+                FUNCTION_CALL(exp);
+            }
+
             break;
         }
 

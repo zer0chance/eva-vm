@@ -127,20 +127,10 @@ class EvaCompiler {
     */
     bool isFunctionBody() { return codeObj->name != "main" && codeObj->scopeLevel == 1; }
 
-    /**
-     * Whether the expression is declaration.
-    */
     bool isDeclaration(const Exp& exp) { return isVarDeclaration(exp); }
-
-    /**
-     * (var <name> <value>)
-    */
     bool isVarDeclaration(const Exp& exp) { return isTaggedList(exp, "var"); }
-
-    /**
-     * (var <name> <value>)
-    */
     bool isBlock(const Exp& exp) { return isTaggedList(exp, "begin"); }
+    bool isLambda(const Exp& exp) { return isTaggedList(exp, "lambda"); }
 
     /**
      * Tagged list.
@@ -174,6 +164,11 @@ class EvaCompiler {
       codeObjects_.push_back(co);
       return coValue;
     }
+
+    /**
+     * Compiling a function body.
+    */
+    void compileFunction(const Exp& exp, const std::string& fnName, const Exp& params, const Exp& body);
 };
 
 #endif
