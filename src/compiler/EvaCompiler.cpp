@@ -101,11 +101,12 @@ void EvaCompiler::gen(const Exp& exp) {
             break;
         
         case ExpType::SYMBOL:
-            // Booleans:
+            // Booleans
             if (exp.string == "true" || exp.string == "false") {
                 emit(OP_CONST);
                 emit(booleanConstIdx(exp.string == "true" ? true : false));
             } else {
+                // Variables
                 auto varName = exp.string;
 
                 // Local variables
@@ -213,7 +214,46 @@ void EvaCompiler::gen(const Exp& exp) {
                     patchJumpAddres(loopEndJmpAddress, getCurrentOffset() + 1);
                 }
 
-                // TODO: for loop
+                // for loop: (for <init> <test> <modifier> <body>)
+                //
+                // (for (var x 1) (< x 10) (set x (+ x 1)) (print x))
+                else if (op == "for") {
+                    // Emit <init>
+                    // FIXME: make init to define variables in local scope, not global.
+                    gen(exp.list[1]);
+
+                    auto loopStartAddr = getCurrentOffset();
+
+                    // Emit <test>
+                    gen(exp.list[2]);
+
+                    emit(OP_JMP_IF_FALSE);
+
+                    // Emit 2 bytes address placeholder
+                    emit(0);
+                    emit(0);
+
+                    auto loopEndJmpAddress = getCurrentOffset() - 2;
+                    
+                    // Emit <body>
+                    // Can be empty loop with no body
+                    if (exp.list.size() == 5) {
+                        gen(exp.list[4]);
+                    }
+                    
+                    // FIXME - Initializer of the for loop creates global
+                    // variables. Poping it's value before calling modifier.
+                    emit(OP_POP);
+                    // Emit <modifier>
+                    gen(exp.list[3]);
+
+                    emit(OP_JMP);
+                    emit(0);
+                    emit(0);
+                    
+                    patchJumpAddres(getCurrentOffset() - 2, loopStartAddr);
+                    patchJumpAddres(loopEndJmpAddress, getCurrentOffset());
+                }
 
                 else if (op == "var") {
                     auto varName = exp.list[1].string;   

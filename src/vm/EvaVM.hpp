@@ -96,13 +96,13 @@ class EvaVM final {
     */
     EvaValue eval();
 
-    const uint8_t next_opcode() {
-        // Return current opcode and increment IP
+    const uint8_t next_byte() {
+        // Return current byte and increment IP
         return *ip++;
     }
 
     const uint16_t next_short() {
-        // Return current opcode and increment IP
+        // Return current opcode and increment IP by 2 bytes
         ip += 2;
         return (uint16_t)((ip[-2] << 8) | ip[-1]);
     }

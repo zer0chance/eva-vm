@@ -56,14 +56,14 @@ EvaValue EvaVM::exec(const std::string& program) {
 
 EvaValue EvaVM::eval() {
     while(true) {
-        // dumpStack();
-        auto bytecode = next_opcode();
+        dumpStack();
+        auto bytecode = next_byte();
         switch (bytecode) {
         case OP_HALT:
             return pop();
 
         case OP_CONST:
-            push(fn->co->constants[next_opcode()]);
+            push(fn->co->constants[next_byte()]);
             break;
         
         case OP_ADD: {
@@ -98,7 +98,7 @@ EvaValue EvaVM::eval() {
             break;
         
         case OP_CMP: {
-            auto op = next_opcode();
+            auto op = next_byte();
 
             auto op2 = pop();
             auto op1 = pop();
@@ -133,20 +133,20 @@ EvaValue EvaVM::eval() {
         }
 
         case OP_GET_GLOBAL: {
-            auto globalIndex = next_opcode();
+            auto globalIndex = next_byte();
             push(global->get(globalIndex).value);
             break;
         }
 
         case OP_SET_GLOBAL: {
-            auto globalIndex = next_opcode();
+            auto globalIndex = next_byte();
             auto value = peek();
             global->set(globalIndex, value);
             break;
         }
 
         case OP_GET_LOCAL: {
-            auto localIndex = next_opcode();
+            auto localIndex = next_byte();
             if (0 < localIndex && localIndex >= STACK_LIMIT) {
                 DIE << "OP_GET_LOCAL: invalid variable index: " << (int)localIndex;
             }
@@ -155,7 +155,7 @@ EvaValue EvaVM::eval() {
         }
 
         case OP_SET_LOCAL: {
-            auto localIndex = next_opcode();
+            auto localIndex = next_byte();
             auto value = peek(0);
             if (0 < localIndex && localIndex >= STACK_LIMIT) {
                 DIE << "OP_GET_LOCAL: invalid variable index: " << (int)localIndex;
@@ -165,7 +165,7 @@ EvaValue EvaVM::eval() {
         }
 
         case OP_SCOPE_EXIT: {
-            auto vars = next_opcode();
+            auto vars = next_byte();
 
             *(sp - 1 - vars) = peek();
 
@@ -179,7 +179,7 @@ EvaValue EvaVM::eval() {
         }
 
         case OP_CALL: {
-            auto argc = next_opcode();
+            auto argc = next_byte();
             auto fnValue = peek(argc);
 
             // Native functions:
