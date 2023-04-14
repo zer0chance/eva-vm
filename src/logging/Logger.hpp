@@ -22,3 +22,4 @@ class FatalErrorMessage : public std::basic_ostringstream<char> {
 #define DIE FatalErrorMessage()
 
 #endif
+

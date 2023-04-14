@@ -7,7 +7,7 @@ include_directories(src src/parser src/compiler)
 
 add_executable(
   evm
-  eva.cpp
+  evm.cpp
   src/vm/EvaVM.cpp
   src/vm/OpCode.cpp
   src/vm/Global.cpp
@@ -16,3 +16,4 @@ add_executable(
   src/compiler/EvaCompiler.cpp
   src/disassembler/EvaDisassembler.cpp
 )
+

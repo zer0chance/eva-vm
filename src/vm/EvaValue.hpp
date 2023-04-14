@@ -10,157 +10,157 @@
 
 /**
  * Types of values
-*/
+ */
 enum class EvaValueType {
-    NUMBER,
-    BOOLEAN,
-    OBJECT
+  NUMBER,
+  BOOLEAN,
+  OBJECT
 };
 
 enum class ObjectType {
-    STRING,
-    CODE,
-    NATIVE,
-    FUNCTION
+  STRING,
+  CODE,
+  NATIVE,
+  FUNCTION
 };
 
 struct Object {
-    Object (ObjectType type) : type(type) {}
-    ObjectType type;
+  Object (ObjectType type) : type(type) {}
+  ObjectType type;
 };
 
-/*
-* Value - union with a tag
-*/
+/**
+ * Value - union with a tag
+ */
 struct EvaValue {
-    EvaValue() {};
-    EvaValue(EvaValueType t, bool v) :
-        type(t) { value.boolean = v; };
-    EvaValue(EvaValueType t, double v) :
-        type(t) { value.number = v; };
-    EvaValue(EvaValueType t, Object* v) :
-        type(t) { value.object = v; };
+  EvaValue() {};
+  EvaValue(EvaValueType t, bool v) :
+    type(t) { value.boolean = v; };
+  EvaValue(EvaValueType t, double v) :
+    type(t) { value.number = v; };
+  EvaValue(EvaValueType t, Object* v) :
+    type(t) { value.object = v; };
 
-    EvaValueType type;
-    union {
-        double number;
-        bool boolean;
-        Object* object;
-    } value;
+  EvaValueType type;
+  union {
+    double number;
+    bool boolean;
+    Object* object;
+  } value;
 };
 
 struct StringObject : public Object {
-    StringObject(const std::string &string) 
-        : Object(ObjectType::STRING), string(string) {}
-    
-    /**
-     * String value.
-    */
-    std::string string;
+  StringObject(const std::string &string) 
+    : Object(ObjectType::STRING), string(string) {}
+
+  /**
+   * String value.
+   */
+  std::string string;
 };
 
 struct LocalVar {
-    std::string name;
-    size_t scopeLevel;
+  std::string name;
+  size_t scopeLevel;
 };
 
 /**
  * CodeObject contains compiled bytecode, locals and
  * other state needed to function execution.
-*/
+ */
 struct CodeObject : public Object {
-    CodeObject(const std::string &name, size_t arity) 
-        : Object(ObjectType::CODE), name(name), arity(arity) {}
+  CodeObject(const std::string &name, size_t arity) 
+    : Object(ObjectType::CODE), name(name), arity(arity) {}
 
-    /**
-     * Unit name (function name in most cases).
-    */
-    std::string name;
+  /**
+   * Unit name (function name in most cases).
+   */
+  std::string name;
 
-    /**
-     * Bytecode instructions.
-    */
-    std::vector<uint8_t> code;
+  /**
+   * Bytecode instructions.
+   */
+  std::vector<uint8_t> code;
 
-    /**
-     * Constant pool.
-    */
-    std::vector<EvaValue> constants;
+  /**
+   * Constant pool.
+   */
+  std::vector<EvaValue> constants;
 
-    /**
-     * Current scope level.
-    */
-    size_t scopeLevel = 0;
+  /**
+   * Current scope level.
+   */
+  size_t scopeLevel = 0;
 
-    /**
-     * Local variables and functions.
-    */
-    std::vector<LocalVar> locals;
+  /**
+   * Local variables and functions.
+   */
+  std::vector<LocalVar> locals;
 
-    /**
-     * Amount of arguments.
-    */
-    size_t arity;
+  /**
+   * Amount of arguments.
+   */
+  size_t arity;
 
-    /**
-     * Defines new local variable.
-    */
-    void addLocal(const std::string& name) {
-        locals.push_back({name, scopeLevel});
-    }
+  /**
+   * Defines new local variable.
+   */
+  void addLocal(const std::string& name) {
+    locals.push_back({name, scopeLevel});
+  }
 
-    /**
-     * Creates new constant.
-    */
-    void addConst(const EvaValue& value) {
-        constants.push_back(value);
-    }
+  /**
+   * Creates new constant.
+   */
+  void addConst(const EvaValue& value) {
+    constants.push_back(value);
+  }
 
-    /**
-     * Returns inxed of the local variabel or -1 if not found.
-    */
-    int getLocalIndex(const std::string& name);
+  /**
+   * Returns inxed of the local variabel or -1 if not found.
+   */
+  int getLocalIndex(const std::string& name);
 };
 
 using NativeFun = std::function<void()>;
 
 struct NativeObject : public Object {
-    NativeObject(NativeFun fn, const std::string& name, size_t arity) 
-        : Object(ObjectType::NATIVE), 
-          function(fn),
-          name(name),
-          arity(arity) {}
-    
-    /**
-     * Function handler.
-    */
-    NativeFun function;
+  NativeObject(NativeFun fn, const std::string& name, size_t arity) 
+    : Object(ObjectType::NATIVE), 
+    function(fn),
+    name(name),
+    arity(arity) {}
 
-    /**
-     * Native name.
-    */
-    std::string name;
+  /**
+   * Function handler.
+   */
+  NativeFun function;
 
-    /**
-     * Amount of arguments.
-    */
-    size_t arity;
+  /**
+   * Native name.
+   */
+  std::string name;
+
+  /**
+   * Amount of arguments.
+   */
+  size_t arity;
 };
 
 struct FunctionObject : public Object {
-    FunctionObject(CodeObject* co) 
-        : Object(ObjectType::FUNCTION), co(co) {}
-    
-    /**
-     * Reference to the code object that contais
-     * functions code and locals.
-    */
-    CodeObject* co;
+  FunctionObject(CodeObject* co) 
+    : Object(ObjectType::FUNCTION), co(co) {}
 
-    /**
-     * Native name.
-    */
-    std::string name;
+  /**
+   * Reference to the code object that contais
+   * functions code and locals.
+   */
+  CodeObject* co;
+
+  /**
+   * Native name.
+   */
+  std::string name;
 };
 
 // Type constructors:
@@ -168,13 +168,13 @@ struct FunctionObject : public Object {
 #define BOOLEAN(value) EvaValue(EvaValueType::BOOLEAN, static_cast<bool>(value))
 
 #define ALLOC_STRING(value) \
-    EvaValue(EvaValueType::OBJECT, (Object*) new StringObject(value))
+  EvaValue(EvaValueType::OBJECT, (Object*) new StringObject(value))
 #define ALLOC_CODE(name, arity) \
-    EvaValue(EvaValueType::OBJECT, (Object*) new CodeObject(name, arity))
+  EvaValue(EvaValueType::OBJECT, (Object*) new CodeObject(name, arity))
 #define ALLOC_NATIVE(fn, name, arity) \
-    EvaValue(EvaValueType::OBJECT, (Object*) new NativeObject(fn, name, arity))
+  EvaValue(EvaValueType::OBJECT, (Object*) new NativeObject(fn, name, arity))
 #define ALLOC_FUNCTION(co) \
-    EvaValue(EvaValueType::OBJECT, (Object*) new FunctionObject(co))
+  EvaValue(EvaValueType::OBJECT, (Object*) new FunctionObject(co))
 
 // Accessors:
 #define AS_NUMBER(evaValue)    ((double)((evaValue).value.number))
@@ -192,7 +192,7 @@ struct FunctionObject : public Object {
 #define IS_OBJECT(evaValue)    ((evaValue).type == EvaValueType::OBJECT)
 
 #define IS_OBJECT_TYPE(evaValue, objectType) \
-    (IS_OBJECT(evaValue) && AS_OBJECT(evaValue)->type == objectType)
+  (IS_OBJECT(evaValue) && AS_OBJECT(evaValue)->type == objectType)
 
 #define IS_STRING(evaValue)    IS_OBJECT_TYPE(evaValue, ObjectType::STRING)
 #define IS_CODE(evaValue)      IS_OBJECT_TYPE(evaValue, ObjectType::CODE)
@@ -204,3 +204,4 @@ std::string evaValueToConstantString(const EvaValue& evaValue);
 std::ostream& operator<<(std::ostream& os, const EvaValue& evaValue);
 
 #endif
+
