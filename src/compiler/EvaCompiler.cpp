@@ -30,9 +30,84 @@ void EvaCompiler::compile(const Exp& exp) {
   codeObj = AS_CODE(createCodeObjectValue("main"));
   main = AS_FUNCTION(ALLOC_FUNCTION(codeObj));
 
+  // Scope analysis.
+  analyze(exp, nullptr);
+
   gen(exp);
 
   emit(OP_HALT);
+}
+
+void EvaCompiler::analyze(const Exp& exp, std::shared_ptr<Scope> scope) {
+  if (exp.type == ExpType::SYMBOL) {
+    // Variables
+    if (exp.string != "true" && exp.string != "false") {
+      scope->maybePromote(exp.string);
+    }
+  } else if (exp.type == ExpType::LIST) {
+    // Lists
+    auto tag = exp.list[0];
+
+    if (tag.type == ExpType::SYMBOL) {
+      auto op = tag.string;
+
+      if (op == "begin") {
+        auto newScope = std::make_shared<Scope>(
+            scope == nullptr ? ScopeType::GLOBAL : ScopeType::BLOCK, scope);
+
+        scopeInfo_[&exp] = newScope;
+
+        for (int i = 1; i < exp.list.size(); ++i) {
+          analyze(exp.list[i], newScope);
+        }
+      }
+
+      else if (op == "var") {
+        scope->addLocal(exp.list[1].string);
+        analyze(exp.list[2], scope);
+      }
+
+      else if (op == "def") {
+        auto fnName = exp.list[1].string;
+        scope->addLocal(fnName);
+        auto newScope = std::make_shared<Scope>(ScopeType::FUNCTION, scope);
+        scopeInfo_[&exp] = newScope;
+
+        newScope->addLocal(fnName);
+
+        // Params
+        auto arity = exp.list[2].list.size();
+        for (int i = 0; i < arity; ++i) {
+          scope->addLocal(exp.list[2].list[i].string);
+        }
+
+        analyze(exp.list[3], newScope);
+      }
+
+      else if (op == "lambda") {
+        auto newScope = std::make_shared<Scope>(ScopeType::FUNCTION, scope);
+        scopeInfo_[&exp] = newScope;
+
+        // Params
+        auto arity = exp.list[1].list.size();
+        for (int i = 0; i < arity; ++i) {
+          scope->addLocal(exp.list[1].list[i].string);
+        }
+
+        analyze(exp.list[2], newScope);
+      }
+
+      else {
+        for (int i = 1; i < exp.list.size(); ++i) {
+          analyze(exp.list[i], scope);
+        }
+      }
+    } else {
+      for (int i = 1; i < exp.list.size(); ++i) {
+        analyze(exp.list[i], scope);
+      }
+    }
+  }
 }
 
 void EvaCompiler::compileFunction(const Exp& exp, const std::string& fnName,
@@ -118,7 +193,7 @@ void EvaCompiler::gen(const Exp& exp) {
         // Global variables
         else {
           if (!global->exists(varName)) {
-            DIE << "[EvaCompiler] Reference error: " << varName;
+            DIE << "[EvaCompiler] Reference error: " << varName << std::endl;
           }
 
           emit(OP_GET_GLOBAL);
@@ -296,7 +371,7 @@ void EvaCompiler::gen(const Exp& exp) {
           else {
             auto globalIndex = global->getGlobalIndex(varName);
             if (globalIndex == -1) {
-              DIE << "Reference error: " << varName << " is not defined.";
+              DIE << "Reference error: " << varName << " is not defined." << std::endl;
             }
 
             // Initializer

@@ -5,6 +5,7 @@
 #ifndef SRC_COMPILER_EVACOMPILER_HPP
 #define SRC_COMPILER_EVACOMPILER_HPP
 
+#include "vm/Scope.hpp"
 #include "vm/EvaValue.hpp"
 #include "parser/EvaParser.hpp"
 #include "disassembler/EvaDisassembler.hpp"
@@ -47,6 +48,11 @@ class EvaCompiler {
      */
     std::unique_ptr<EvaDisassembler> disassembler;
 
+    /**
+     * Scope info.
+     */
+    std::map<const Exp*, std::shared_ptr<Scope>> scopeInfo_;
+
   public:
     EvaCompiler(std::shared_ptr<Global> global) :
       global(global),
@@ -72,6 +78,11 @@ class EvaCompiler {
     FunctionObject* getMainFunction() { return this->main; }
   
   private:
+    /**
+     * Scope analysis.
+     */
+    void analyze(const Exp& exp, std::shared_ptr<Scope> scope);
+
     /**
      * Recursive code generation.
      */
