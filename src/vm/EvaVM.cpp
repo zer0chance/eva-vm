@@ -51,7 +51,8 @@ EvaValue EvaVM::exec(const std::string& program) {
   // Debug assembly
   compiler->disassembleBytecode();
 
-  return eval();
+  return NUMBER(1);
+  // return eval();
 }
 
 EvaValue EvaVM::eval() {

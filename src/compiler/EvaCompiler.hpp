@@ -11,6 +11,7 @@
 #include "disassembler/EvaDisassembler.hpp"
 
 #include <map>
+#include <stack>
 #include <memory>
 
 /**
@@ -52,6 +53,11 @@ class EvaCompiler {
      * Scope info.
      */
     std::map<const Exp*, std::shared_ptr<Scope>> scopeInfo_;
+
+    /**
+     * Scope stack.
+     */
+    std::stack<std::shared_ptr<Scope>> scopeStack_;
 
   public:
     EvaCompiler(std::shared_ptr<Global> global) :
@@ -126,8 +132,8 @@ class EvaCompiler {
     /**
      * Enter and exit block scope.
      */
-    void scopeEnter() { codeObj->scopeLevel++; }
-    void scopeExit ();
+    void blockEnter() { codeObj->scopeLevel++; }
+    void blockExit ();
 
     /**
      * Check if we are in global scope.

@@ -14,8 +14,11 @@ int main(int argc, char** argv) {
 
         (begin
           (var y 100)
+          (var q 300)
+          q
           (begin
             (var z 200)
+            z
             (def bar () (+ y z)
             (bar))))
   )");

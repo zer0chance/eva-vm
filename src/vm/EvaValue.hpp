@@ -98,6 +98,16 @@ struct CodeObject : public Object {
   std::vector<LocalVar> locals;
 
   /**
+   * Cell var names.
+   */
+  std::vector<std::string> cellNames;
+  
+  /**
+   * Free vars count.
+   */
+  size_t freeCount = 0;
+  
+  /**
    * Amount of arguments.
    */
   size_t arity;
@@ -117,9 +127,14 @@ struct CodeObject : public Object {
   }
 
   /**
-   * Returns inxed of the local variabel or -1 if not found.
+   * Returns inxed of the local variable or -1 if not found.
    */
   int getLocalIndex(const std::string& name);
+
+  /**
+   * Returns inxed of the cell or -1 if not found.
+   */
+  int getCellIndex(const std::string& name);
 };
 
 using NativeFun = std::function<void()>;

@@ -25,6 +25,8 @@ std::string opcodeToString(ByteCode opcode) {
     OP_STR(SCOPE_EXIT);
     OP_STR(CALL);
     OP_STR(RETURN);
+    OP_STR(GET_CELL);
+    OP_STR(SET_CELL);
     default:
     DIE << "Unknown bytecode: " << HEX(opcode);
     return "";

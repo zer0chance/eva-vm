@@ -58,3 +58,16 @@ int CodeObject::getLocalIndex(const std::string& name) {
 
   return -1; // Not found
 }
+
+int CodeObject::getCellIndex(const std::string& name) {
+  if (locals.size() > 0) {
+    for (int i = 0; i < (int)cellNames.size(); i++) {
+      if (cellNames[i] == name) {
+        return i;
+      }
+    }
+  }
+
+  return -1; // Not found
+}
+

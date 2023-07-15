@@ -5,8 +5,10 @@
 #define SRC_VM_SCOPE_HPP
 
 #include "logging/Logger.hpp"
+#include "vm/OpCode.hpp"
 
 #include <set>
+#include <map>
 #include <map>
 
 /**
@@ -47,10 +49,22 @@ struct Scope {
   std::map<std::string, AllocType> allocInfo;
 
   /**
+   * Set of free variables.
+   */
+  std::set<std::string> free;
+
+  /**
+   * Set of own cells.
+   */
+
+  std::set<std::string> cells;
+  /**
    * Register a local.
    */
+
   void addLocal(const std::string& name) {
-    allocInfo[name] = type == ScopeType::GLOBAL ? AllocType::GLOBAL : AllocType::LOCAL;
+    allocInfo[name] =
+      type == ScopeType::GLOBAL ? AllocType::GLOBAL : AllocType::LOCAL;
   }
 
   /**
@@ -82,7 +96,7 @@ struct Scope {
     // Update the alloc type based on resolution.
     allocInfo[name] = allocType;
 
-    // If resolved as a cell, promote, promote it to heap.
+    // If resolved as a cell, promote it to heap.
     if (allocType == AllocType::CELL) {
       promote(name, ownerScope);
     }
@@ -92,7 +106,7 @@ struct Scope {
    * Resovle the variable in the Scope chain.
    *
    * Initially all variable are threated as a local, however if during the
-   * resolution we passed local scope boundary, it is free and shoul be
+   * resolution we passed local scope boundary, it is free and should be
    * promoted to the cell unless it is global.
    */
   std::pair<Scope*, AllocType> resolve(const std::string& name, AllocType allocType) {
@@ -124,7 +138,7 @@ struct Scope {
   void promote(const std::string& name, Scope* ownerScope) {
     ownerScope->addCell(name);
 
-    // Make th variable free at all scopes in the chain
+    // Make the variable free at all scopes in the chain
     // to propogate it to our scope.
     auto scope = this;
     while (scope != ownerScope) {
@@ -134,14 +148,32 @@ struct Scope {
   }
 
   /**
-   * Set of free variables.
+   * Returns get opcode based on allocation type.
    */
-  std::set<std::string> free;
+  ByteCode getNameGetter(const std::string& name) {
+    switch (allocInfo[name]) {
+      case AllocType::GLOBAL:
+        return OP_GET_GLOBAL;
+      case AllocType::LOCAL:
+        return OP_GET_LOCAL;
+      case AllocType::CELL:
+        return OP_GET_CELL;
+    }
+  }
 
   /**
-   * Set of own cells.
+   * Returns set opcode based on allocation type.
    */
-  std::set<std::string> cells;
+  ByteCode getNameSetter(const std::string& name) {
+    switch (allocInfo[name]) {
+      case AllocType::GLOBAL:
+        return OP_SET_GLOBAL;
+      case AllocType::LOCAL:
+        return OP_SET_LOCAL;
+      case AllocType::CELL:
+        return OP_SET_CELL;
+    }
+  }
 };
 
 #endif
