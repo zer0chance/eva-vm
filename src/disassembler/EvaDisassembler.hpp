@@ -67,6 +67,11 @@ class EvaDisassembler {
     size_t disassembleCell(CodeObject* co, ByteCode opcode, size_t offset);
 
     /**
+     * Disassembles make function.
+     */
+    size_t disassembleMakeFunction(CodeObject* co, ByteCode opcode, size_t offset);
+
+    /**
      * Disassembles compare instruction.
      */
     size_t disassembleCompare(CodeObject* co, ByteCode opcode, size_t offset);

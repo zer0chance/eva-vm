@@ -163,15 +163,43 @@ void EvaCompiler::compileFunction(const Exp& exp, const std::string& fnName,
   // Explicit return to restore caller address.
   emit(OP_RETURN);
 
-  // Creating a function and adding it as a constant to the
-  // previous code object.
-  auto fn = ALLOC_FUNCTION(codeObj);
+  if (scopeInfo->free.size() == 0) {
+    // Creating a function and adding it as a constant to the
+    // previous code object.
+    auto fn = ALLOC_FUNCTION(codeObj);
 
-  codeObj = prevCodeObj;
-  codeObj->addConst(fn);
+    codeObj = prevCodeObj;
 
-  emit(OP_CONST);
-  emit(codeObj->constants.size() - 1);
+    codeObj->addConst(fn);
+
+    emit(OP_CONST);
+    emit(codeObj->constants.size() - 1);
+  }
+  
+  // Closures:
+  // 1. Load free variables to capture.
+  // 2. Load code object for current funtcion.
+  // 3. Make function.
+  
+  else {
+    codeObj = prevCodeObj;
+
+    // Load free vars.
+    for (const auto& freeVar : scopeInfo->free) {
+      emit(OP_LOAD_CELL);
+      emit(prevCodeObj->getCellIndex(freeVar));
+    }
+
+    // Load code object.
+    emit(OP_CONST);
+    emit(codeObj->constants.size() - 1);
+
+    // Create the function.
+    emit(OP_MAKE_FUNCTION);
+
+    // How many cells to capture.
+    emit(scopeInfo->free.size());
+  }
   
   scopeStack_.pop();
 }
@@ -400,6 +428,9 @@ void EvaCompiler::gen(const Exp& exp) {
 
           auto opCodeSetter = scopeStack_.top()->getNameSetter(varName);
 
+          // Value:
+          gen(exp.list[2]);
+
           // Local variables
           if (opCodeSetter == OP_SET_LOCAL) {
             emit(OP_SET_LOCAL);
@@ -407,7 +438,7 @@ void EvaCompiler::gen(const Exp& exp) {
           }
 
           // Cell variables
-          if (opCodeSetter == OP_SET_CELL) {
+          else if (opCodeSetter == OP_SET_CELL) {
             emit(OP_SET_CELL);
             emit(codeObj->getCellIndex(varName));
           }

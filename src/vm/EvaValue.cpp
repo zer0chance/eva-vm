@@ -13,6 +13,8 @@ std::string evaValueToTypeStr(const EvaValue& evaValue) {
     return "NATIVE";
   } else if (IS_FUNCTION(evaValue)) {
     return "FUNCTION";
+  } else if (IS_CELL(evaValue)) {
+    return "CELL";
   }
   DIE << "evaValueToTypeStr: unknown type";
   return "";
@@ -35,7 +37,10 @@ std::string evaValueToConstantString(const EvaValue& evaValue) {
   } else if (IS_FUNCTION(evaValue)) {
     auto fn = AS_FUNCTION(evaValue);
     ss << fn->co->name << '/' << fn->co->arity;
-  } else {
+  } else if (IS_CELL(evaValue)) {
+    auto cell = AS_CELL(evaValue);
+    ss << "cell: " << evaValueToConstantString(cell->value);
+  }  else {
     DIE << "evaValueToConstantString: unknown type";
   }
 
@@ -60,7 +65,7 @@ int CodeObject::getLocalIndex(const std::string& name) {
 }
 
 int CodeObject::getCellIndex(const std::string& name) {
-  if (locals.size() > 0) {
+  if (cellNames.size() > 0) {
     for (int i = 0; i < (int)cellNames.size(); i++) {
       if (cellNames[i] == name) {
         return i;

@@ -51,8 +51,7 @@ EvaValue EvaVM::exec(const std::string& program) {
   // Debug assembly
   compiler->disassembleBytecode();
 
-  return NUMBER(1);
-  // return eval();
+  return eval();
 }
 
 EvaValue EvaVM::eval() {
@@ -168,10 +167,50 @@ EvaValue EvaVM::eval() {
         break;
       }
 
+      // Cell values.
+      case OP_GET_CELL: {
+        auto cellIndex = next_byte();
+        push(fn->cells[cellIndex]->value);
+        break;
+      }
+
+      case OP_SET_CELL: {
+        auto cellIndex = next_byte();
+        auto value = peek(0);
+
+        if (fn->cells.size() <= cellIndex) {
+          fn->cells.push_back(AS_CELL(ALLOC_CELL(value)));
+        } else {
+          // Update the cell value.
+          fn->cells[cellIndex]->value = value;
+        }
+        break;
+      }
+
+      case OP_LOAD_CELL: {
+        auto cellIndex = next_byte();
+        push(CELL(fn->cells[cellIndex]));
+        break;
+      }
+
+      case OP_MAKE_FUNCTION: {
+        auto co = AS_CODE(pop());
+        auto cellsCount = next_byte();
+        auto fnValue = ALLOC_FUNCTION(co);
+        auto fn = AS_FUNCTION(fnValue);
+
+        for (auto i = 0; i < cellsCount; i++) {
+          fn->cells.push_back(AS_CELL(pop()));
+        }
+
+        push(fnValue);
+        break;
+      }
+
       case OP_SCOPE_EXIT: {
         auto vars = next_byte();
 
-        *(sp - 1 - vars) = peek();
+        *(sp - 1 - vars) = peek(0);
 
         popN(vars);
         break;

@@ -134,8 +134,8 @@ class EvaVM final {
    * Pops N values from the stack.
    */
   EvaValue popN(size_t N) {
-    for (size_t i = 0; i < N; i++) pop();
-    return *sp;
+    for (size_t i = 0; i < N - 1; i++) pop();
+    return pop();
   }
 
   /**

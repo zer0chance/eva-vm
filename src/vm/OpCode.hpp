@@ -42,6 +42,10 @@ enum ByteCodes : ByteCode {
   // Cells
   OP_SET_CELL      = 0x11,
   OP_GET_CELL      = 0x12,
+  OP_LOAD_CELL     = 0x13,
+
+  // Function construction
+  OP_MAKE_FUNCTION = 0x14,
 };
 
 std::string opcodeToString(ByteCode opcode);

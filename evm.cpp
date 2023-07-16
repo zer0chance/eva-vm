@@ -14,13 +14,14 @@ int main(int argc, char** argv) {
 
         (begin
           (var y 100)
+          (set y 1000)
           (var q 300)
           q
           (begin
             (var z 200)
             z
-            (def bar () (+ y z)
-            (bar))))
+            (def bar () (+ y z))
+            (bar)))
   )");
 
   std::cout << "\nVM exited gracefully with value: " << result << std::endl;

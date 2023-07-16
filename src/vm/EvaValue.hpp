@@ -21,7 +21,8 @@ enum class ObjectType {
   STRING,
   CODE,
   NATIVE,
-  FUNCTION
+  FUNCTION,
+  CELL
 };
 
 struct Object {
@@ -162,6 +163,14 @@ struct NativeObject : public Object {
   size_t arity;
 };
 
+/**
+ * Used to capture closured values.
+ */
+struct CellObject : public Object {
+  CellObject(EvaValue v) : Object(ObjectType::CELL), value(v) {}
+  EvaValue value;
+};
+
 struct FunctionObject : public Object {
   FunctionObject(CodeObject* co) 
     : Object(ObjectType::FUNCTION), co(co) {}
@@ -173,14 +182,15 @@ struct FunctionObject : public Object {
   CodeObject* co;
 
   /**
-   * Native name.
+   * Captured cells (free variables).
    */
-  std::string name;
+  std::vector<CellObject*> cells;
 };
 
 // Type constructors:
 #define NUMBER(value)  EvaValue(EvaValueType::NUMBER, static_cast<double>(value))
 #define BOOLEAN(value) EvaValue(EvaValueType::BOOLEAN, static_cast<bool>(value))
+#define OBJECT(value)  EvaValue(EvaValueType::OBJECT, static_cast<Object*>(value))
 
 #define ALLOC_STRING(value) \
   EvaValue(EvaValueType::OBJECT, (Object*) new StringObject(value))
@@ -190,6 +200,10 @@ struct FunctionObject : public Object {
   EvaValue(EvaValueType::OBJECT, (Object*) new NativeObject(fn, name, arity))
 #define ALLOC_FUNCTION(co) \
   EvaValue(EvaValueType::OBJECT, (Object*) new FunctionObject(co))
+#define ALLOC_CELL(co) \
+  EvaValue(EvaValueType::OBJECT,   (Object*) new CellObject(co))
+
+#define CELL(value)    OBJECT((Object*)value)
 
 // Accessors:
 #define AS_NUMBER(evaValue)    ((double)((evaValue).value.number))
@@ -200,6 +214,7 @@ struct FunctionObject : public Object {
 #define AS_CODE(evaValue)      ((CodeObject*)((evaValue).value.object))
 #define AS_NATIVE(evaValue)    ((NativeObject*)((evaValue).value.object))
 #define AS_FUNCTION(evaValue)  ((FunctionObject*)((evaValue).value.object))
+#define AS_CELL(evaValue)      ((CellObject*)((evaValue).value.object))
 
 // Testers:
 #define IS_NUMBER(evaValue)    ((evaValue).type == EvaValueType::NUMBER)
@@ -213,6 +228,7 @@ struct FunctionObject : public Object {
 #define IS_CODE(evaValue)      IS_OBJECT_TYPE(evaValue, ObjectType::CODE)
 #define IS_NATIVE(evaValue)    IS_OBJECT_TYPE(evaValue, ObjectType::NATIVE)
 #define IS_FUNCTION(evaValue)  IS_OBJECT_TYPE(evaValue, ObjectType::FUNCTION)
+#define IS_CELL(evaValue)      IS_OBJECT_TYPE(evaValue, ObjectType::CELL)
 
 std::string evaValueToTypeStr(const EvaValue& evaValue);
 std::string evaValueToConstantString(const EvaValue& evaValue);
